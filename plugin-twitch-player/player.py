@@ -82,8 +82,9 @@ class Player(Screen):
                              ("blue", _("Resolution")), ("exit", _("Back"))):
             self["key_" + key].setText(caption)
 
-        self["actions"] = ActionMap(["OkCancelActions", "ColorActions", "InfobarEPGActions"], {
+        self["actions"] = ActionMap(["OkCancelActions", "DirectionActions", "ColorActions", "InfobarEPGActions"], {
             "cancel": self.close, "ok": self.ok_pressed, "InfoPressed": self.toggle_info,
+            "left": self.browse, "right": self.browse,
             "green": self.browse, "yellow": self.toggle_chat, "blue": self.choose_quality,
         }, -1)
         self["chat_actions"] = ActionMap(["NumberActions"], {"1": self.cycle_chat_position}, -1)
