@@ -56,7 +56,11 @@ jobs:
           shopt -s failglob
           builds="$RUNNER_TEMP/plugin-builds"
           while IFS= read -r commit; do
-            tag="build-$commit"
+            short_commit=$(git rev-parse --short=8 "$commit")
+            tag="build-$short_commit"
+            if git show-ref --verify --quiet "refs/tags/build-$commit"; then
+              tag="build-$commit"
+            fi
             draft=$(gh release view "$tag" --json isDraft --jq .isDraft 2>/dev/null || true)
             case "$draft" in
               false) continue ;;
@@ -67,7 +71,7 @@ jobs:
               *)
                 gh release create "$tag" "$builds/$commit/dist/"*.ipk \
                   --target "$commit" --latest \
-                  --title "Build ${commit:0:12}" --notes "Packages built from commit $commit."
+                  --title "Build $short_commit" --notes ""
                 ;;
             esac
           done < "$builds/commits"
@@ -81,7 +85,7 @@ jobs:
             --jq '
               .[]
               | select(.draft | not)
-              | select(.tag_name | test("^build-[0-9a-f]{40}$"))
+              | select(.tag_name | test("^build-[0-9a-f]{8,40}$"))
               | [.published_at, .id, .tag_name]
               | @tsv
             ' \

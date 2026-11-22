@@ -50,7 +50,7 @@ To capture the development container's current display, run `make screenshot` to
 
 Run `make dist` with Python 3 to build one `.ipk` per plugin in `dist/`. Run the same target from a plugin directory to build just that plugin.
 
-Each plugin sets its base version in `package.control`. From a full Git checkout, the build appends the first-parent commit count and the first eight characters of the commit hash, for example `0.1.0+git1+56c00bfe`. This lets `opkg` upgrade to later builds on `main` using the same release download URL. Source archives and shallow clones use the base version.
+Set the base version in `package.control`. Release builds append a commit count and short hash so `opkg` can recognize updates.
 
 Copy the IPK to a receiver running a compatible OE-Alliance Enigma2 image. Install it with `opkg install` and the path to the file. Restart the Enigma2 GUI and open **Extensions**.
 
