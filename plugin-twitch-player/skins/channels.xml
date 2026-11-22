@@ -1,0 +1,31 @@
+<screen name="TwitchChannels" position="center,center" size="1240,598" resolution="1280,720" flags="wfNoBorder" backgroundColor="window-bg">
+  <ePixmap position="22,13" size="39,39" pixmap="~/mark.png" scale="1" alphatest="blend" />
+  <widget source="Title" render="Label" position="69,9" size="520,46" font="Body;27" foregroundColor="window-fg" valign="center" transparent="1" noWrap="1" />
+  <widget name="status" position="600,13" size="612,38" font="Body;17" foregroundColor="window-fg" halign="right" valign="center" transparent="1" noWrap="1" />
+  <widget source="channels" render="Listbox" position="20,64" size="1206,478" listOrientation="grid" itemSpacing="4,8" scrollbarMode="showNever" enableWrapAround="0">
+    <templates>
+      <template name="Default" fonts="Body;19,Body;15,Body;14,Body;32,Body;13">
+        <mode name="default" itemWidth="298" itemHeight="234">
+          <rectangle index="-1" position="2,2" size="294,230" backgroundColor="secondBG" backgroundColorSelected="secondBG" />
+          <text index="placeholder" position="5,5" size="288,162" font="3" horizontalAlignment="center" verticalAlignment="center" backgroundColor="infobar-bkgrnd" backgroundColorSelected="infobar-bkgrnd" foregroundColor="infobar-frgrnd" foregroundColorSelected="infobar-frgrnd" />
+          <pixmap index="preview" position="5,5" size="288,162" alpha="blend" scale="centerScaled" />
+          <text index="stats" position="10,10" size="108,20" font="2" horizontalAlignment="center" verticalAlignment="center" foregroundColor="key_text" foregroundColorSelected="key_text" backgroundColor="infobar-bkgrnd" backgroundColorSelected="infobar-bkgrnd" cornerRadius="4" />
+          <text index="initial" position="10,171" size="20,20" font="4" horizontalAlignment="center" verticalAlignment="center" backgroundColor="infobar-bkgrnd" backgroundColorSelected="infobar-bkgrnd" foregroundColor="infobar-frgrnd" foregroundColorSelected="infobar-frgrnd" cornerRadius="10" />
+          <pixmap index="avatar" position="10,171" size="20,20" alpha="blend" scale="centerScaled" cornerRadius="10" />
+          <text index="name" position="36,168" size="252,25" font="0" verticalAlignment="center" wrap="ellipsis" foregroundColor="key_text" foregroundColorSelected="key_text" />
+          <text index="title" position="10,193" size="278,19" font="1" verticalAlignment="center" wrap="ellipsis" foregroundColor="window-fg" foregroundColorSelected="window-fg" />
+          <text index="game" position="10,212" size="278,18" font="2" verticalAlignment="center" wrap="ellipsis" foregroundColor="infobar-frgrnd" foregroundColorSelected="infobar-frgrnd" />
+        </mode>
+      </template>
+    </templates>
+  </widget>
+  <widget name="empty" position="60,224" size="1120,100" font="Body;26" foregroundColor="window-fg" halign="center" valign="center" transparent="1" zPosition="1" />
+  <ePixmap position="26,564" size="25,18" pixmap="buttons/key_ok.png" scale="centerScaled" alphatest="blend" />
+  <widget name="key_ok" position="58,555" size="225,36" font="Body;18" foregroundColor="window-fg" valign="center" transparent="1" noWrap="1" />
+  <ePixmap position="294,564" size="25,18" pixmap="buttons/key_green.png" scale="centerScaled" alphatest="blend" />
+  <widget name="key_green" position="326,555" size="220,36" font="Body;18" foregroundColor="window-fg" valign="center" transparent="1" noWrap="1" />
+  <ePixmap position="565,564" size="25,18" pixmap="buttons/key_blue.png" scale="centerScaled" alphatest="blend" />
+  <widget name="key_blue" position="597,555" size="288,36" font="Body;18" foregroundColor="window-fg" valign="center" transparent="1" noWrap="1" />
+  <ePixmap position="1006,564" size="27,18" pixmap="buttons/key-exit.png" scale="centerScaled" alphatest="blend" />
+  <widget name="key_exit" position="1040,555" size="174,36" font="Body;18" foregroundColor="window-fg" valign="center" transparent="1" noWrap="1" />
+</screen>

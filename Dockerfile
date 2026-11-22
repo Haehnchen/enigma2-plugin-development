@@ -38,6 +38,13 @@ RUN make install DESTDIR=/tmp/enigma2-root \
       'config.misc.country=US' 'config.usage.setup_level=expert' \
       'config.usage.pluginListLayout=0' >> /etc/enigma2/settings
 
+# Twitch uses the bundled StreamlinkWrapper and GStreamer HTTPS, HLS and H.264 playback.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-libav gstreamer1.0-x \
+ && rm -rf /var/lib/apt/lists/* \
+ && python3 -m pip install --no-cache-dir streamlink==8.6.3
+
 COPY tools/start-enigma2 /usr/local/bin/start-enigma2
 ENV DISPLAY=:99 SDL_VIDEODRIVER=x11 LIBGL_ALWAYS_SOFTWARE=1 PYTHONDONTWRITEBYTECODE=1
 

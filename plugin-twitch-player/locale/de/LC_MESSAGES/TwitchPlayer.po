@@ -1,0 +1,206 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: TwitchPlayer\n"
+"PO-Revision-Date: 2026-11-22 00:00+0000\n"
+"Last-Translator: TwitchPlayer contributors\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Add a channel or connect Twitch in Settings."
+msgstr "In den Einstellungen einen Kanal hinzufügen oder Twitch verbinden."
+
+msgid "Add"
+msgstr "Hinzufügen"
+
+msgid "Back"
+msgstr "Zurück"
+
+msgid "Bottom right"
+msgstr "Unten rechts"
+
+msgid "Channel details unavailable"
+msgstr "Kanaldetails nicht verfügbar"
+
+msgid "Channels"
+msgstr "Kanäle"
+
+msgid "Chat position"
+msgstr "Chatposition"
+
+msgid "Chat"
+msgstr "Chat"
+
+msgid "Connect Twitch"
+msgstr "Twitch verbinden"
+
+msgid "Connecting to chat…"
+msgstr "Chat wird verbunden…"
+
+msgid "Could not save Twitch settings."
+msgstr "Die Twitch-Einstellungen konnten nicht gespeichert werden."
+
+msgid "Could not save the Twitch login."
+msgstr "Die Twitch-Anmeldung konnte nicht gespeichert werden."
+
+msgid "Custom channels"
+msgstr "Eigene Kanäle"
+
+msgid "Device code expired. Open Connect Twitch again."
+msgstr "Der Code ist abgelaufen. Bitte „Twitch verbinden“ erneut öffnen."
+
+msgid "Disconnect this Twitch account?"
+msgstr "Dieses Twitch-Konto trennen?"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Close"
+msgstr "Schließen"
+
+msgid "Enter a channel name using letters, digits or underscores."
+msgstr "Bitte einen Kanalnamen aus Buchstaben, Ziffern oder Unterstrichen eingeben."
+
+msgid "Followed channels unavailable"
+msgstr "Gefolgte Kanäle nicht verfügbar"
+
+msgid "Info"
+msgstr "Info"
+
+msgid "Install the StreamlinkWrapper plugin to play streams."
+msgstr "Für die Wiedergabe bitte das Plugin StreamlinkWrapper installieren."
+
+msgid "No channels are live right now."
+msgstr "Gerade ist kein Kanal live."
+
+msgid "No playable stream. The channel may be offline."
+msgstr "Kein abspielbarer Stream gefunden. Der Kanal ist möglicherweise offline."
+
+msgid "Play"
+msgstr "Abspielen"
+
+msgid "Open {url} on your phone or computer"
+msgstr "Auf dem Handy oder Computer {url} öffnen"
+
+msgid "Opening stream…"
+msgstr "Stream wird geöffnet…"
+
+msgid "Playback interrupted. Choose a channel with Green."
+msgstr "Wiedergabe unterbrochen. Mit Grün einen Kanal wählen."
+
+msgid "Please connect Twitch again"
+msgstr "Bitte Twitch erneut verbinden"
+
+msgid "Reconnecting to chat…"
+msgstr "Chatverbindung wird wiederhergestellt…"
+
+msgid "Refresh"
+msgstr "Aktualisieren"
+
+msgid "Remove {name}?"
+msgstr "{name} entfernen?"
+
+msgid "Remove"
+msgstr "Entfernen"
+
+msgid "Requesting device code…"
+msgstr "Gerätecode wird angefordert…"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Streamlink could not open this channel."
+msgstr "Streamlink konnte diesen Kanal nicht öffnen."
+
+msgid "The receiver could not start playback."
+msgstr "Der Receiver konnte die Wiedergabe nicht starten."
+
+msgid "This channel is already on your list."
+msgstr "Dieser Kanal ist bereits in deiner Liste."
+
+msgid "Twitch channel name"
+msgstr "Twitch-Kanalname"
+
+msgid "Twitch channels"
+msgstr "Twitch-Kanäle"
+
+msgid "Twitch channels, live streams and chat"
+msgstr "Twitch-Kanäle, Livestreams und Chat"
+
+msgid "Twitch login failed. Open Connect Twitch to retry."
+msgstr "Anmeldung fehlgeschlagen. Bitte „Twitch verbinden“ erneut öffnen."
+
+msgid "Twitch settings"
+msgstr "Twitch-Einstellungen"
+
+msgid "Updating channels…"
+msgstr "Kanäle werden aktualisiert…"
+
+msgid "Waiting for messages…"
+msgstr "Warte auf Nachrichten…"
+
+msgid "{online}/{total} online"
+msgstr "{online}/{total} Online"
+
+msgid "Top left"
+msgstr "Oben links"
+
+msgid "Top center"
+msgstr "Oben mittig"
+
+msgid "Top right"
+msgstr "Oben rechts"
+
+msgid "Middle left"
+msgstr "Mitte links"
+
+msgid "Middle right"
+msgstr "Mitte rechts"
+
+msgid "Bottom left"
+msgstr "Unten links"
+
+msgid "Bottom center"
+msgstr "Unten mittig"
+
+msgid "Position"
+msgstr "Position"
+
+msgid "Twitch account"
+msgstr "Twitch-Konto"
+
+msgid "Connected"
+msgstr "Verbunden"
+
+msgid "Disconnected"
+msgstr "Getrennt"
+
+msgid "Press OK to manage your Twitch connection."
+msgstr "Mit OK das Twitch-Konto verbinden oder trennen."
+
+msgid "Press OK to add or remove channels."
+msgstr "Mit OK Kanäle hinzufügen oder entfernen."
+
+msgid "Use Left/Right to move the chat."
+msgstr "Mit Links/Rechts die Chatposition ändern."
+
+msgid "No custom channels. Press Green to add one."
+msgstr "Mit Grün den ersten Kanal hinzufügen."
+
+msgid "Resolution"
+msgstr "Auflösung"
+
+msgid "Loading available resolutions…"
+msgstr "Verfügbare Auflösungen werden geladen…"
+
+msgid "No resolutions available. Press OK to retry."
+msgstr "Keine Auflösungen verfügbar. Mit OK erneut versuchen."
+
+msgid "{quality} · Best available"
+msgstr "{quality} · Beste Qualität"
+
+msgid "Could not switch resolution."
+msgstr "Die Auflösung konnte nicht gewechselt werden."

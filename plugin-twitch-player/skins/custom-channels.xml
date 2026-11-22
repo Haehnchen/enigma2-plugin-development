@@ -1,0 +1,5 @@
+<screen name="TwitchCustomChannels" position="center,center" size="740,310" resolution="1280,720">
+    <widget name="channels" position="12,10" size="716,222" scrollbarMode="showOnDemand" />
+    <widget name="empty" position="22,12" size="696,48" font="Body" transparent="1" valign="center" zPosition="1" />
+    <panel name="ButtonBarAuto1Panel" />
+</screen>

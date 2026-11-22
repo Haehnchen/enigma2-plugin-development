@@ -1,0 +1,6 @@
+<screen name="TwitchDeviceLogin" position="center,center" size="850,300" resolution="1280,720">
+  <widget name="prompt" position="24,18" size="802,77" font="Body;25" halign="center" valign="center" />
+  <widget name="code" position="24,103" size="802,86" font="Body;52" halign="center" valign="center" />
+  <ePixmap position="24,231" size="27,18" pixmap="buttons/key-exit.png" scale="centerScaled" alphatest="blend" />
+  <widget name="status" position="60,211" size="760,56" font="Body" valign="center" />
+</screen>

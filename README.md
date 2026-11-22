@@ -9,6 +9,7 @@ Each `plugin-*` directory contains one plugin's source code, assets, tests, and 
 | Plugin | Description |
 | --- | --- |
 | [Crypto Market](plugin-crypto-market/README.md) | Crypto watchlist with prices and candlestick charts. |
+| [Twitch Player](plugin-twitch-player/README.md) | Twitch player with account linking and a live chat overlay. |
 | [Hello World](plugin-hello-world/README.md) | Opens a “Hello World!” dialog from the Extensions menu. |
 
 ## Development

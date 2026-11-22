@@ -4,3 +4,4 @@ dist
 __pycache__
 plugin-hello-world
 plugin-crypto-market
+plugin-twitch-player
