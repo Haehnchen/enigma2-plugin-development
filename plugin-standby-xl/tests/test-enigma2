@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+tests=$(dirname -- "${BASH_SOURCE[0]}")
+driver=/usr/lib/enigma2/python/Plugins/Extensions/StandbyXLTest
+mkdir -p "$driver"
+touch "$driver/__init__.py"
+cp "$tests/test-plugin.py" "$driver/plugin.py"
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+
+for variant in standard xl; do
+    skin=skin_display.xml
+    if [[ $variant == xl ]]; then skin="Standby XL/$skin"; fi
+    sed -i '/^config\.skin\.display_skin=/d' /etc/enigma2/settings
+    printf '\nconfig.skin.display_skin=%s\n' "$skin" >> /etc/enigma2/settings
+    rm -f /tmp/lcd.png
+    if ! STANDBY_TEST_SKIN="$skin" timeout --kill-after=5s 45s xvfb-run -a \
+        -s '-screen 0 1280x720x24 -nolisten tcp' enigma2 >"$work/log" 2>&1 ||
+        ! grep -F '[StandbyXLTest] PASS' "$work/log"; then
+        tail -180 "$work/log" >&2
+        exit 1
+    fi
+    cp /tmp/lcd.png "$work/$variant.png"
+done
+
+python3 "$tests/compare.py" "$work"
+if [[ $# -gt 0 ]]; then cp "$work/xl.png" "$work/comparison.webp" "$1/"; fi

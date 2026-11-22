@@ -34,6 +34,18 @@ services:
         bind:
           create_host_path: false
       - twitch-player:/var/lib/twitch-player
+      - type: bind
+        source: ./plugin-standby-xl
+        target: /usr/lib/enigma2/python/Plugins/Extensions/StandbyXL
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./plugin-standby-xl/display/Standby XL
+        target: /usr/share/enigma2/display/Standby XL
+        read_only: true
+        bind:
+          create_host_path: false
       - crypto-market:/var/lib/crypto-market
 volumes:
   crypto-market:

@@ -21,11 +21,16 @@ RUN git init \
  && ./configure --with-libsdl --with-gstversion=1.0 --prefix=/usr --sysconfdir=/etc --with-boxtype=dm920
 
 # The SDL receiver needs this patch to draw video behind its OSD because GStreamer otherwise opens a separate window.
+# The front-panel patch provides a virtual 480x320 LCD for standby screenshots.
 COPY tools/sdl-video.patch /tmp/sdl-video.patch
-RUN patch -p1 < /tmp/sdl-video.patch && make -j"${BUILD_JOBS}"
+COPY tools/sdl-frontpanel.patch /tmp/sdl-frontpanel.patch
+RUN patch -p1 < /tmp/sdl-video.patch \
+ && patch -p1 < /tmp/sdl-frontpanel.patch \
+ && make -j"${BUILD_JOBS}"
 
 # Install in a staging directory so upstream install hooks can create their symlinks.
 RUN make install DESTDIR=/tmp/enigma2-root \
+ && make -C data/display480 install DESTDIR=/tmp/enigma2-root \
  && mv /usr/lib/enigma2/python /tmp/enigma2-base-python \
  && cp -a /tmp/enigma2-root/. / \
  && cp /tmp/enigma2-base-python/Tools/Weatherinfo.py /usr/lib/enigma2/python/Tools/ \

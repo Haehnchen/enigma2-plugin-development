@@ -1,0 +1,8 @@
+Package: enigma2-plugin-extensions-standby-xl
+Version: 0.1.1
+Architecture: all
+Maintainer: Enigma2 plugin development contributors
+Section: base
+Priority: optional
+Depends: enigma2
+Description: Large standby clock and compact date for a 480x320 Enigma2 front panel.

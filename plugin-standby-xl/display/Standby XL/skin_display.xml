@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin>
+	<include filename="/usr/share/enigma2/display/skin_display.xml"/>
+	<screen name="StandbySummary" position="0,0" size="480,320">
+		<widget source="global.CurrentTime" render="Label" position="2,34" size="478,148" font="FdLcD;132" halign="center" valign="center" noWrap="1">
+			<convert type="ClockToText">Format:%H:%M</convert>
+		</widget>
+		<eLabel position="center,193" size="240,3" backgroundColor="#BDBDBD"/>
+		<widget source="global.CurrentTime" render="Label" position="0,220" size="480,60" font="FdLcD;40" halign="center" valign="center" noWrap="1">
+			<convert type="ClockToText">Format:%d.%m.%Y</convert>
+		</widget>
+		<panel name="TheRecordingPanel2"/>
+	</screen>
+</skin>

@@ -1,0 +1,25 @@
+--- a/lib/gdi/lcd.cpp
++++ b/lib/gdi/lcd.cpp
+@@ -43,7 +43,8 @@ void eLCD::setSize(int xres, int yres, int bpp)
+ 	_stride = xres * bpp / 8;
+ 	_buffer = new unsigned char[xres * yres * bpp / 8];
+ #ifdef LCD_DM900_Y_OFFSET
+-	xres -= LCD_DM900_Y_OFFSET;
++	if (lcdfd >= 0)
++		xres -= LCD_DM900_Y_OFFSET;
+ #endif
+ 	res = eSize(xres, yres);
+ 	memset(_buffer, 0, xres * yres * bpp / 8);
+@@ -242,7 +243,11 @@ eDBoxLCD::eDBoxLCD()
+ 	}
+ 	instance = this;
+ 
+-	setSize(xres, yres, bpp);
++	// Give the SDL receiver a Solo 4K-sized LCD buffer for skin previews.
++	if (lcdfd < 0)
++		setSize(480, 320, 32);
++	else
++		setSize(xres, yres, bpp);
+ }
+ 
+ void eDBoxLCD::setInverted(unsigned char inv)

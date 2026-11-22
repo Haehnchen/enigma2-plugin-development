@@ -53,12 +53,16 @@ def main():
     parser.add_argument("extension", help="Enigma2 extension directory name")
     parser.add_argument("output", type=Path)
     parser.add_argument("files", type=Path, nargs="+")
+    parser.add_argument("--display-files", type=Path, nargs="+", default=[],
+                        help="assets under display/ to install under /usr/share/enigma2/display/")
     args = parser.parse_args()
 
     if not fullmatch(r"[A-Za-z][A-Za-z0-9_]*", args.extension):
         parser.error("the extension must be a Python package directory name")
-    if any(path.is_absolute() or ".." in path.parts for path in args.files):
+    if any(path.is_absolute() or ".." in path.parts for path in args.files + args.display_files):
         parser.error("package files must use paths relative to the plugin directory")
+    if any(path.parts[:1] != ("display",) for path in args.display_files):
+        parser.error("display files must be under display/")
 
     control = args.control.read_text(encoding="utf-8")
     fields = dict(line.split(": ", 1) for line in control.splitlines() if ": " in line)
@@ -72,6 +76,8 @@ def main():
     control = sub(r"(?m)^Version: .+$", f"Version: {version}", control)
     destination = EXTENSIONS / args.extension
     payload = {destination / path: path.read_bytes() for path in sorted(args.files)}
+    payload.update({PurePosixPath("usr/share/enigma2") / path: path.read_bytes()
+                    for path in sorted(args.display_files)})
     package = tar_gz({
         PurePosixPath("debian-binary"): b"2.0\n",
         PurePosixPath("control.tar.gz"): tar_gz({PurePosixPath("control"): control.encode("utf-8")}),
