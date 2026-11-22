@@ -20,7 +20,9 @@ RUN git init \
  && ./autogen.sh \
  && ./configure --with-libsdl --with-gstversion=1.0 --prefix=/usr --sysconfdir=/etc --with-boxtype=dm920
 
-RUN make -j"${BUILD_JOBS}"
+# The SDL receiver needs this patch to draw video behind its OSD because GStreamer otherwise opens a separate window.
+COPY tools/sdl-video.patch /tmp/sdl-video.patch
+RUN patch -p1 < /tmp/sdl-video.patch && make -j"${BUILD_JOBS}"
 
 # Install in a staging directory so upstream install hooks can create their symlinks.
 RUN make install DESTDIR=/tmp/enigma2-root \

@@ -1,0 +1,173 @@
+--- a/lib/gdi/sdl.cpp
++++ b/lib/gdi/sdl.cpp
+@@ -6,9 +6,13 @@
+ #include <lib/driver/rcsdl.h>
+ 
+ #include <SDL2/SDL.h>
++#include <gst/video/video.h>
++
++static GWeakRef videoSink;
+ 
+ gSDLDC::gSDLDC() : m_window(nullptr), m_osd_tex(nullptr), m_pump(eApp, 1,"gSDLDC")
+ {
++	g_weak_ref_init(&videoSink, nullptr);
+ 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+ 		eWarning("[gSDLDC] Could not initialize SDL: %s", SDL_GetError());
+ 		return;
+@@ -33,6 +37,7 @@
+ {
+ 	pushEvent(EV_QUIT);
+ 	kill();
++	g_weak_ref_clear(&videoSink);
+ 	SDL_Quit();
+ }
+ 
+@@ -123,6 +128,57 @@
+ 	m_surface.data = m_osd->pixels;
+ }
+ 
++// The SDL test receiver has no DVB video plane. Keep only the newest frame.
++GstElement *gSDLDC::createVideoSink()
++{
++	GstElement *sink = gst_element_factory_make("appsink", nullptr);
++	if (sink) {
++		GstCaps *caps = gst_caps_from_string("video/x-raw,format=BGRA");
++		g_object_set(sink, "caps", caps, "max-buffers", 1u, "drop", TRUE,
++			"enable-last-sample", FALSE, "wait-on-eos", FALSE, nullptr);
++		gst_caps_unref(caps);
++		g_weak_ref_set(&videoSink, sink);
++	}
++	return sink;
++}
++
++bool gSDLDC::updateVideo()
++{
++	if (!m_osd_tex)
++		return false;
++	GstElement *sink = GST_ELEMENT(g_weak_ref_get(&videoSink));
++	if (!sink) {
++		if (!m_video_tex)
++			return false;
++		SDL_DestroyTexture(m_video_tex);
++		m_video_tex = nullptr;
++		return true;
++	}
++	GstSample *sample = nullptr;
++	g_signal_emit_by_name(sink, "try-pull-sample", (guint64)0, &sample);
++	gst_object_unref(sink);
++	if (!sample)
++		return false;
++	GstVideoInfo info;
++	GstVideoFrame frame;
++	if (gst_video_info_from_caps(&info, gst_sample_get_caps(sample)) &&
++		gst_video_frame_map(&frame, &info, gst_sample_get_buffer(sample), GST_MAP_READ)) {
++		if (!m_video_tex || m_video_width != info.width || m_video_height != info.height) {
++			SDL_DestroyTexture(m_video_tex);
++			m_video_width = info.width;
++			m_video_height = info.height;
++			m_video_tex = SDL_CreateTexture(m_render, SDL_PIXELFORMAT_ARGB8888,
++				SDL_TEXTUREACCESS_STREAMING, info.width, info.height);
++		}
++		if (m_video_tex)
++			SDL_UpdateTexture(m_video_tex, nullptr, GST_VIDEO_FRAME_PLANE_DATA(&frame, 0),
++				GST_VIDEO_FRAME_PLANE_STRIDE(&frame, 0));
++		gst_video_frame_unmap(&frame);
++	}
++	gst_sample_unref(sample);
++	return true;
++}
++
+ void gSDLDC::evFlip()
+ {
+ 	if (!m_window)
+@@ -132,6 +188,18 @@
+ 	SDL_SetRenderDrawColor(m_render, 0, 0, 0, 0);
+ 	SDL_RenderClear(m_render);
+ 	
++	if (m_video_tex) {
++		SDL_Rect dest = {0, 0, m_osd->w, m_osd->h};
++		if (dest.w * m_video_height > dest.h * m_video_width) {
++			dest.w = dest.h * m_video_width / m_video_height;
++			dest.x = (m_osd->w - dest.w) / 2;
++		} else {
++			dest.h = dest.w * m_video_height / m_video_width;
++			dest.y = (m_osd->h - dest.h) / 2;
++		}
++		SDL_RenderCopy(m_render, m_video_tex, nullptr, &dest);
++	}
++
+ 	// Render OSD
+ 	SDL_UpdateTexture(m_osd_tex, NULL, m_osd->pixels, m_osd->pitch);
+ 	SDL_RenderCopy(m_render, m_osd_tex, NULL, NULL);
+@@ -146,7 +214,7 @@
+ 	bool stop = false;
+ 	while (!stop) {
+ 		SDL_Event event;
+-		if (SDL_WaitEvent(&event)) {
++		if (SDL_WaitEventTimeout(&event, 40)) {
+ 			switch (event.type) {
+ 			case SDL_KEYDOWN:
+ 			case SDL_KEYUP:
+@@ -168,6 +236,8 @@
+ 				break;
+ 			}
+ 		}
++		if (updateVideo())
++			evFlip();
+ 	}
+ }
+ 
+--- a/lib/gdi/sdl.h
++++ b/lib/gdi/sdl.h
+@@ -5,6 +5,7 @@
+ #include <lib/gdi/gmaindc.h>
+ 
+ #include <SDL2/SDL.h>
++#include <gst/gst.h>
+ 
+ class gSDLDC: public gMainDC, public eThread, public sigc::trackable
+ {
+@@ -13,6 +14,9 @@
+ 	SDL_Window *m_window;
+ 	SDL_Renderer *m_render;
+ 	SDL_Texture *m_osd_tex;
++	SDL_Texture *m_video_tex = nullptr;
++	int m_video_width = 0, m_video_height = 0;
++	bool updateVideo();
+ 	SDL_Surface *m_osd;
+ 
+ 	void exec(const gOpcode *opcode);
+@@ -35,6 +39,7 @@
+ 	void evFlip();
+ 
+ public:
++	static GstElement *createVideoSink();
+ 	void setResolution(int xres, int yres, int bpp = 32);
+ 	gSDLDC();
+ 	virtual ~gSDLDC();
+--- a/lib/service/servicemp3.cpp
++++ b/lib/service/servicemp3.cpp
+@@ -26,6 +26,7 @@
+ #include <lib/dvb/epgcache.h>
+ #include <lib/dvb/subtitle.h>
+ #include <lib/gdi/gpixmap.h>
++#include <lib/gdi/sdl.h>
+ #include <lib/gui/esubtitle.h>
+ #include <lib/service/service.h>
+ #include <lib/service/servicemp3.h>
+@@ -1461,6 +1462,15 @@
+ 		/* native video flag = no GStreamer video conversion */
+ 		guint flags = GST_PLAY_FLAG_AUDIO | GST_PLAY_FLAG_VIDEO | GST_PLAY_FLAG_TEXT | GST_PLAY_FLAG_NATIVE_VIDEO;
+ 
++		if (!dvb_videosink && !m_sourceinfo.is_audio) {
++			if (GstElement *sink = gSDLDC::createVideoSink()) {
++				gst_object_ref_sink(sink);
++				g_object_set(m_gst_playbin, "video-sink", sink, nullptr);
++				gst_object_unref(sink);
++				flags &= ~GST_PLAY_FLAG_NATIVE_VIDEO;
++			}
++		}
++
+ 		if (m_sourceinfo.is_streaming) {
+ 			m_notify_source_handler_id =
+ 				g_signal_connect(m_gst_playbin, "notify::source", G_CALLBACK(playbinNotifySource), this);
