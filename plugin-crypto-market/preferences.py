@@ -40,24 +40,15 @@ def write_preferences(path, watchlist, settings):
 
 
 def parse_preferences(values):
-    if not isinstance(values, dict):
+    if not isinstance(values, dict) or not isinstance(values.get("pairs"), list):
         return DEFAULT_WATCHLIST, ChartSettings()
 
-    if "pairs" in values:
-        if not isinstance(values["pairs"], list):
-            return DEFAULT_WATCHLIST, ChartSettings()
+    symbols = tuple(dict.fromkeys(
+        symbol for symbol in values["pairs"] if isinstance(symbol, str) and symbol
+    ))
+    interval = values.get("interval")
+    candle_count = values.get("candle_count")
+    if type(candle_count) is not int or not MIN_CANDLE_COUNT <= candle_count <= MAX_CANDLE_COUNT:
+        candle_count = DEFAULT_CANDLE_COUNT
 
-        symbols = tuple(dict.fromkeys(
-            symbol for symbol in values["pairs"] if isinstance(symbol, str) and symbol
-        ))
-        interval = values.get("interval")
-        candle_count = values.get("candle_count")
-        if type(candle_count) is not int or not MIN_CANDLE_COUNT <= candle_count <= MAX_CANDLE_COUNT:
-            candle_count = DEFAULT_CANDLE_COUNT
-
-        return symbols, ChartSettings(interval if interval in INTERVALS else DEFAULT_INTERVAL, candle_count)
-
-    # Older versions stored a separate interval for each pair.
-    saved = {symbol: interval for symbol, interval in values.items() if symbol and interval in INTERVALS}
-    interval = next((value for value in saved.values() if value != DEFAULT_INTERVAL), DEFAULT_INTERVAL)
-    return tuple(saved), ChartSettings(interval)
+    return symbols, ChartSettings(interval if interval in INTERVALS else DEFAULT_INTERVAL, candle_count)

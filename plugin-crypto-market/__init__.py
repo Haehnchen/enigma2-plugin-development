@@ -1,1 +1,1 @@
-"""Binance Spot market dashboard for Enigma2."""
+"""Crypto watchlist with prices and candlestick charts."""

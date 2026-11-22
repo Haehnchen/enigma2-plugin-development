@@ -224,12 +224,10 @@ class PreferencesTest(unittest.TestCase):
             (("ETHUSDT", "BTCUSDT"), preferences.ChartSettings("15m", 72)),
         )
 
-    def test_legacy_settings_keep_order_and_keep_a_custom_interval(self):
-        self.assertEqual(
-            preferences.parse_preferences({"BTCUSDT": "1h", "ETHUSDT": "15m", "SOLUSDT": "4h"}),
-            (("BTCUSDT", "ETHUSDT", "SOLUSDT"), preferences.ChartSettings("15m", 72)),
-        )
-        self.assertEqual(preferences.parse_preferences(None), (market.DEFAULT_WATCHLIST, preferences.ChartSettings("1h", 72)))
+    def test_missing_or_invalid_pairs_uses_defaults(self):
+        for values in (None, {"interval": "4h"}, {"pairs": "BTCUSDT"}):
+            with self.subTest(values=values):
+                self.assertEqual(preferences.parse_preferences(values), (market.DEFAULT_WATCHLIST, preferences.ChartSettings()))
 
     def test_invalid_candle_count_preserves_the_rest_of_the_settings(self):
         for value in (True, 11, 241, "120"):
