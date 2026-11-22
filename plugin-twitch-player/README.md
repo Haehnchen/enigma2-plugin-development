@@ -19,6 +19,7 @@ To install a local build, copy the IPK to the receiver and run `opkg install /pa
 ## Features
 
 - Live channel grid with previews, stream titles, categories, viewer counts and time live.
+- Stream details on the receiver’s front display during playback.
 - Custom channels added by name.
 - Twitch account linking via device code to show followed channels.
 - Video resolution selection during playback.
@@ -31,6 +32,7 @@ To install a local build, copy the IPK to the receiver and run `opkg install /pa
 <p>
   <a href="docs/chat.webp"><img src="docs/chat.webp" width="30%" alt="Live chat overlay during playback"></a>
   <a href="docs/resolution.webp"><img src="docs/resolution.webp" width="30%" alt="Available stream resolutions during playback"></a>
+  <a href="docs/front-panel.webp"><img src="docs/front-panel.webp" width="22%" alt="Front-panel display during a live Twitch stream"></a>
 </p>
 
 ## Build from source

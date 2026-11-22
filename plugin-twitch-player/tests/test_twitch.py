@@ -69,6 +69,13 @@ class DisplayTests(unittest.TestCase):
         self.assertEqual(twitch.Channel("eslcs", viewers=0).live_stats(now), "0")
         self.assertEqual(twitch.Channel("eslcs").live_stats(now), "")
 
+    def test_lcd_duration_advances_from_cached_start_in_whole_minutes(self):
+        start = datetime(2026, 11, 1, 12, 3, 17, tzinfo=timezone.utc)
+        row = twitch.Channel("eslcs", viewers=0, started_at=start)
+        self.assertEqual(row.live_duration(start + timedelta(seconds=3599)), "59m")
+        self.assertEqual(row.live_duration(start + timedelta(hours=1)), "1h 0m")
+        self.assertEqual(twitch.Channel("eslcs", viewers=0).live_duration(start), "")
+
 
 class TwitchTests(unittest.TestCase):
     def test_resolution_choices_use_playable_video_variants_without_aliases(self):

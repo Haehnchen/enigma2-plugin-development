@@ -285,17 +285,20 @@ class Channel:
     def live(self):
         return self.viewers is not None
 
+    def live_duration(self, now=None):
+        if not self.live or self.started_at is None:
+            return ""
+
+        elapsed = (now or datetime.now(timezone.utc)) - self.started_at
+        hours, minutes = divmod(max(0, int(elapsed.total_seconds())) // 60, 60)
+        return f"{hours}h {minutes}m" if hours else f"{minutes}m"
+
     def live_stats(self, now=None):
         if not self.live:
             return ""
         count = format_viewers(self.viewers)
-        if self.started_at is None:
-            return count
-
-        elapsed = (now or datetime.now(timezone.utc)) - self.started_at
-        hours, minutes = divmod(max(0, int(elapsed.total_seconds())) // 60, 60)
-        duration = f"{hours}h {minutes}m" if hours else f"{minutes}m"
-        return f"{count} · {duration}"
+        duration = self.live_duration(now)
+        return f"{count} · {duration}" if duration else count
 
 
 def fetch_channels(names, size, avatar_width):

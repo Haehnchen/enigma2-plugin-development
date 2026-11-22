@@ -5,6 +5,7 @@ from Components.ActionMap import ActionMap
 from Components.Label import Label
 from Components.Pixmap import Pixmap
 from Components.PluginComponent import plugins
+from Components.Sources.StaticText import StaticText
 from enigma import eServiceReference, eTimer, iPlayableService
 from Plugins.Plugin import PluginDescriptor
 from Screens.MessageBox import MessageBox
@@ -16,6 +17,39 @@ from .chat_view import ChatView
 from .i18n import _
 from .quality import StreamQuality
 from .twitch import bouquet_reference
+
+
+class TwitchPlaybackSummary(Screen):
+    skin = (Path(__file__).with_name("skins") / "player-summary.xml").read_text(encoding="utf-8")
+
+    def __init__(self, session, parent):
+        super().__init__(session, parent)
+        self["channel"] = StaticText()
+        self["streamTitle"] = StaticText()
+        self["game"] = StaticText()
+        self["avatar"] = Pixmap()
+        self["viewersLabel"] = StaticText(_("Viewers"))
+        self["durationLabel"] = StaticText(_("Time live"))
+        self["viewerCount"] = StaticText()
+        self["duration"] = StaticText()
+        self.timer = eTimer()
+        self.timer.callback.append(self.update_stream)
+        self.onShow.append(self.resume)
+        self.onHide.append(self.timer.stop)
+
+    def resume(self):
+        self.update_stream()
+        self.timer.start(60000)
+
+    def update_stream(self):
+        player = self.parent
+        row = player.row
+        playing = player.is_playing()
+        self["channel"].text = row.display or row.login
+        self["streamTitle"].text = (row.title if playing else "") or player.playback_status
+        self["game"].text = row.game if playing else ""
+        self["viewerCount"].text = str(row.viewers) if playing and row.live else "–"
+        self["duration"].text = (row.live_duration() if playing else "") or "–"
 
 
 class Player(Screen):
@@ -64,6 +98,9 @@ class Player(Screen):
         self.onExecEnd.append(self.suspend)
         self.onClose.append(self.stop)
 
+    def createSummary(self):
+        return TwitchPlaybackSummary
+
     def start(self):
         self["chat_top_left"].hide()
         self.chat_positions = {name: self[name].instance.position() for name in self.CHAT}
@@ -77,11 +114,8 @@ class Player(Screen):
             self["chat_text"].resume()
         self.update()
 
-    def suspend_images(self):
-        self.library.previews.show([])
-
     def suspend(self):
-        self.suspend_images()
+        self.library.previews.show([])
         self["chat_text"].pause()
 
     def play(self, row):
@@ -117,8 +151,10 @@ class Player(Screen):
         ref.setName(row.display or row.login)
         nav = self.session.nav
         previous = nav.getCurrentlyPlayingServiceOrGroup()
-        if nav.playService(ref, forceRestart=ref == previous) or not nav.getCurrentlyPlayingServiceOrGroup():
-            if previous and nav.getCurrentlyPlayingServiceOrGroup() != previous:
+        failed = nav.playService(ref, forceRestart=previous is not None and ref == previous)
+        current = nav.getCurrentlyPlayingServiceOrGroup()
+        if failed or not current:
+            if previous and (not current or current != previous):
                 nav.playService(previous)
             message = _("Could not switch resolution.") if quality else _("The receiver could not start playback.")
             self.failed(request, message)
@@ -141,8 +177,12 @@ class Player(Screen):
             self.playback_status = message
             self.show_info()
 
+    def is_playing(self):
+        current = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+        return self.ref is not None and current is not None and current == self.ref
+
     def service_event(self, event):
-        if not self.ref or self.session.nav.getCurrentlyPlayingServiceOrGroup() != self.ref:
+        if not self.is_playing():
             return
         if event in (iPlayableService.evTuneFailed, iPlayableService.evStreamError, iPlayableService.evEOF):
             self.failed(self.request, _("Playback interrupted. Choose a channel with Green."))
@@ -157,11 +197,21 @@ class Player(Screen):
         self["initial"].setText(display[:1].upper())
         self["category"].setText(self.row.game)
         self["details"].setText(self.playback_status or self.row.title)
-        viewers = self["viewers"]
-        viewers.setText(self.row.live_stats())
-        if self.execing and self.info_visible and self["cover"].instance:
-            self.library.previews.show([(self["avatar"], self.row.profile_image or self.row.avatar, 0),
-                                        (self["cover"], self.row.cover, 0)])
+        self["viewers"].setText(self.row.live_stats())
+        self.summaries.update_stream()
+        self.update_images()
+
+    def update_images(self):
+        if not self.execing:
+            return
+        avatar = self.row.profile_image or self.row.avatar
+        images = []
+        if self.info_visible and self["cover"].instance:
+            images.extend(((self["avatar"], avatar, 0), (self["cover"], self.row.cover, 0)))
+        for summary in self.summaries:
+            if summary.shown and summary["avatar"].skinAttributes:
+                images.append((summary["avatar"], avatar if self.is_playing() else "", 0))
+        self.library.previews.show(images)
 
     def visibility(self, names, visible):
         for name in names:
@@ -178,8 +228,7 @@ class Player(Screen):
     def hide_info(self):
         self.info_visible = False
         self.visibility(self.INFO + ("avatar", "cover"), False)
-        if self.execing:
-            self.suspend_images()
+        self.update_images()
 
     def toggle_info(self):
         if self.info_visible:
@@ -267,7 +316,7 @@ class Player(Screen):
             self.stop_chat()
 
         current = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-        if current is None or current == self.ref:
+        if current is None or (self.ref is not None and current == self.ref):
             self.session.nav.stopService()
             if self.previous:
                 self.session.nav.playService(self.previous)
