@@ -1,8 +1,19 @@
 # Enigma2 plugin development
 
-A local Docker Compose environment for developing and testing Enigma2 plugins. It runs the Enigma2 interface from OpenATV 8.0, an OE-Alliance distribution, and makes it available in your browser.
+This repository contains Enigma2 plugins for OE-Alliance-compatible images and a local Docker environment for developing and testing them.
 
-Requires Docker with Compose and Make on x86-64 Linux.
+## Plugins
+
+Each `plugin-*` directory contains one plugin's source code, assets, tests, and package metadata.
+
+| Plugin | Description |
+| --- | --- |
+| [Crypto Market](plugin-crypto-market/README.md) | Crypto watchlist with prices and candlestick charts. |
+| [Hello World](plugin-hello-world/README.md) | Opens a “Hello World!” dialog from the Extensions menu. |
+
+## Development
+
+The local development environment uses a Docker container to run OpenATV 8.0 (an OE-Alliance-compatible image). You can access the Enigma2 interface in your browser.
 
 1. Run `make start` to build `enigma2-dev:8.0` and start the container in the foreground.
 2. In a second terminal, run `make ui` to open the interface at [localhost:6080](http://127.0.0.1:6080/vnc.html?autoconnect=true&resize=scale). The command returns after opening the browser. Click inside the noVNC display to give it keyboard focus.
@@ -12,7 +23,7 @@ The test interface starts in English. If port 6080 is in use, run `make start UI
 
 Stop the container with `Ctrl+C` in the terminal running `make start`, or run `make stop` from another terminal in the project directory.
 
-## Browser keyboard controls
+### Browser keyboard controls
 
 | Browser key | Remote button |
 | --- | --- |
@@ -27,20 +38,15 @@ Stop the container with `Ctrl+C` in the terminal running `make start`, or run `m
 | `F5` | INFO |
 | `F11` | EPG |
 
-## Plugins
-
-- [Crypto Market dashboard](plugin-crypto-market/README.md)
-- [Hello World](plugin-hello-world/README.md)
-
-Each plugin README documents its test commands.
-
-## Edit plugins
+### Edit and test plugins
 
 Compose mounts the plugin directories read-only under `/usr/lib/enigma2/python/Plugins/Extensions/`. Edit files on the host and run `make restart` to reload your changes. You can also start the environment directly with `docker compose up --build`.
 
+Run `make test` from the plugin's directory. Each plugin README describes its tests.
+
 To capture the development container's current display, run `make screenshot` to save `enigma2.png`.
 
-## Build installable packages
+### Build installable packages
 
 Run `make dist` with Python 3 to build one `.ipk` per plugin in `dist/`. Run the same target from a plugin directory to build just that plugin.
 
