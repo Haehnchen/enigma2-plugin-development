@@ -44,6 +44,8 @@ To capture the development container's current display, run `make screenshot` to
 
 Run `make dist` with Python 3 to build one `.ipk` per plugin in `dist/`. Run the same target from a plugin directory to build just that plugin.
 
+Each plugin sets its base version in `package.control`. From a full Git checkout, the build appends the first-parent commit count and the first eight characters of the commit hash, for example `0.1.0+git1+56c00bfe`. This lets `opkg` upgrade to later builds on `main` using the same release download URL. Source archives and shallow clones use the base version.
+
 Copy the IPK to a receiver running a compatible OE-Alliance Enigma2 image. Install it with `opkg install` and the path to the file. Restart the Enigma2 GUI and open **Extensions**.
 
 The Dockerfile builds the pinned [OpenATV 8.0 commit](https://github.com/openatv/enigma2/commit/d31cb9aad315470e39bf04edcd1227279648a404) with SDL2 on top of the [OpenATV test environment](https://github.com/openatv/enigma2-testenv).

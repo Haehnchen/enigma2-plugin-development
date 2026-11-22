@@ -4,12 +4,29 @@ from argparse import ArgumentParser
 from gzip import GzipFile
 from io import BytesIO
 from pathlib import Path, PurePosixPath
-from re import fullmatch
+from re import fullmatch, sub
+from subprocess import check_output
 import tarfile
 from tempfile import TemporaryDirectory
 
 
 EXTENSIONS = PurePosixPath("usr/lib/enigma2/python/Plugins/Extensions")
+
+
+def package_version(base_version):
+    root = Path(__file__).resolve().parents[1]
+    if not (root / ".git").exists():
+        return base_version
+
+    git = ["git", "-C", str(root)]
+    shallow, commit = check_output(
+        [*git, "rev-parse", "--is-shallow-repository", "--verify", "HEAD"], text=True
+    ).splitlines()
+    if shallow == "true":
+        return base_version
+
+    count = check_output([*git, "rev-list", "--first-parent", "--count", commit], text=True).strip()
+    return f"{base_version}+git{count}+{commit[:8]}"
 
 
 def tar_gz(files):
@@ -43,19 +60,21 @@ def main():
     if any(path.is_absolute() or ".." in path.parts for path in args.files):
         parser.error("package files must use paths relative to the plugin directory")
 
-    control = args.control.read_bytes()
-    fields = dict(line.split(": ", 1) for line in control.decode().splitlines() if ": " in line)
+    control = args.control.read_text(encoding="utf-8")
+    fields = dict(line.split(": ", 1) for line in control.splitlines() if ": " in line)
     name = fields.get("Package", "")
     version = fields.get("Version", "")
     arch = fields.get("Architecture", "")
     if not all(fullmatch(r"[A-Za-z0-9][A-Za-z0-9.+~-]*", value) for value in (name, version, arch)):
         parser.error("control must contain valid Package, Version and Architecture fields")
 
+    version = package_version(version)
+    control = sub(r"(?m)^Version: .+$", f"Version: {version}", control)
     destination = EXTENSIONS / args.extension
     payload = {destination / path: path.read_bytes() for path in sorted(args.files)}
     package = tar_gz({
         PurePosixPath("debian-binary"): b"2.0\n",
-        PurePosixPath("control.tar.gz"): tar_gz({PurePosixPath("control"): control}),
+        PurePosixPath("control.tar.gz"): tar_gz({PurePosixPath("control"): control.encode("utf-8")}),
         PurePosixPath("data.tar.gz"): tar_gz(payload),
     })
 

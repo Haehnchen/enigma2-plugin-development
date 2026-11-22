@@ -8,4 +8,4 @@ Run `make test` from this directory. The test starts OpenATV in a disposable Com
 
 ## Package
 
-Run `make dist` from this directory to build the IPK in `../dist/`. The package version is set in [package.control](package.control).
+Run `make dist` from this directory to build the IPK in `../dist/`. The base version is set in [package.control](package.control).

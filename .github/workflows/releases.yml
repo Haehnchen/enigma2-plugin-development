@@ -39,8 +39,7 @@ jobs:
           git rev-list --reverse --first-parent "$range" > "$builds/commits"
 
           while IFS= read -r commit; do
-            mkdir "$builds/$commit"
-            git archive "$commit" | tar -x -C "$builds/$commit"
+            git worktree add --quiet --detach "$builds/$commit" "$commit"
             make -C "$builds/$commit" dist
 
             for package in "$builds/$commit/dist/"*.ipk; do

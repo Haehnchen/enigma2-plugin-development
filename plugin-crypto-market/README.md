@@ -8,7 +8,13 @@ Crypto Market is an Enigma2 plugin for compatible OE-Alliance images. It tracks 
 
 ## Installation
 
-Download `enigma2-plugin-extensions-cryptomarket.ipk` from the repository's **Latest** release. Install it with `opkg install /path/to/package.ipk` and restart the Enigma2 GUI.
+Open a terminal session on the receiver and run the following command to install or update Crypto Market.
+
+```sh
+opkg install https://github.com/Haehnchen/enigma2-plugin-development/releases/latest/download/enigma2-plugin-extensions-cryptomarket.ipk
+```
+
+If you already copied the IPK to the receiver, run `opkg install /path/to/package.ipk` instead. Restart the Enigma2 GUI after installation.
 
 ## Controls
 
@@ -34,4 +40,4 @@ The watchlist and chart defaults are saved in `/etc/enigma2/crypto-market.json` 
 
 - `make test` runs the Python unit tests.
 - `make test-picker` checks the pair picker in an OpenATV container.
-- `make dist` writes the IPK to `../dist/`. Set the version in [package.control](package.control).
+- `make dist` writes the IPK to `../dist/`. Set the base version in [package.control](package.control).
