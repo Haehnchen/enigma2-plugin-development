@@ -1,0 +1,40 @@
+<screen name="CryptoMarket" position="center,center" size="1240,672" resolution="1280,720"
+        flags="wfNoBorder" backgroundColor="#0B121D">
+    <eLabel position="20,10" size="386,608" backgroundColor="#111B29" zPosition="-1" />
+    <eLabel position="422,10" size="798,608" backgroundColor="#111B29" zPosition="-1" />
+    <widget source="pair_column" render="Label" position="40,20" size="66,24" font="Regular;16"
+            foregroundColor="#A0B1C6" transparent="1" />
+    <widget source="price_column" render="Label" position="110,20" size="174,24" font="Regular;16" halign="right"
+            foregroundColor="#A0B1C6" transparent="1" />
+    <eLabel text="24 h" position="286,20" size="94,24" font="Regular;16" halign="right"
+            foregroundColor="#A0B1C6" transparent="1" />
+    <eLabel position="32,46" size="362,1" backgroundColor="#29384C" />
+    <widget name="watchlist" position="32,49" size="362,546" font="Regular;19" scrollbarMode="showOnDemand"
+            backgroundColor="#111B29" backgroundColorSelected="#24425B" />
+    <widget source="pair_title" render="Label" position="443,22" size="435,37" font="Regular;29"
+            foregroundColor="#ECF3FF" valign="center" transparent="1" />
+    <widget source="pair_price" render="Label" position="882,24" size="309,33" font="Regular;23" halign="right"
+            foregroundColor="#ECF3FF" valign="center" transparent="1" />
+    <widget source="candle_summary" render="Label" position="444,61" size="492,26" font="Regular;17"
+            foregroundColor="#A0B1C6" valign="center" transparent="1" />
+    <widget source="chart_status" render="Label" position="941,61" size="250,26" font="Regular;16"
+            foregroundColor="#A0B1C6" halign="right" valign="center" transparent="1" />
+    <widget name="chart" position="432,91" size="778,515" />
+    <eLabel position="20,625" size="1200,1" backgroundColor="#29384C" />
+    <eLabel position="24,642" size="5,17" backgroundColor="#D95364" />
+    <widget source="key_red" render="Label" position="38,635" size="196,31" font="Regular;19"
+            foregroundColor="#ECF3FF" valign="center" transparent="1" />
+    <eLabel position="244,642" size="5,17" backgroundColor="#42BB74" />
+    <widget source="key_green" render="Label" position="258,635" size="201,31" font="Regular;19"
+            foregroundColor="#ECF3FF" valign="center" transparent="1" />
+    <eLabel position="469,642" size="5,17" backgroundColor="#EAC45C" />
+    <widget source="key_yellow" render="Label" position="483,635" size="248,31" font="Regular;19"
+            foregroundColor="#ECF3FF" valign="center" transparent="1" />
+    <eLabel position="741,642" size="5,17" backgroundColor="#5799F5" />
+    <widget source="key_blue" render="Label" position="755,635" size="190,31" font="Regular;19"
+            foregroundColor="#ECF3FF" valign="center" transparent="1" />
+    <widget source="key_menu" render="Label" position="951,635" size="139,31" font="Regular;18"
+            foregroundColor="#A0B1C6" valign="center" transparent="1" />
+    <widget source="key_exit" render="Label" position="1096,635" size="120,31" font="Regular;18" halign="right"
+            foregroundColor="#A0B1C6" valign="center" transparent="1" />
+</screen>

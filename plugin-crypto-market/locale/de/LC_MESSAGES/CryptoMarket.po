@@ -1,0 +1,139 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: CryptoMarket\n"
+"PO-Revision-Date: 2026-11-22 00:00+0000\n"
+"Last-Translator: CryptoMarket contributors\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Volume"
+msgstr "Volumen"
+
+msgid "Add trading pair"
+msgstr "Handelspaar hinzufügen"
+
+#, python-brace-format
+msgid "CoinGecko 60% · Binance 24h volume 40% · {count} pairs"
+msgstr "CoinGecko 60 % · Binance-Volumen (24 h) 40 % · {count} Paare"
+
+msgid "Pair"
+msgstr "Paar"
+
+msgid "Volume · USDT equivalent"
+msgstr "Volumen · USDT-Gegenwert"
+
+msgid "Add"
+msgstr "Hinzufügen"
+
+msgid "Watchlist"
+msgstr "Beobachtungsliste"
+
+msgid "This pair is already in your watchlist."
+msgstr "Dieses Paar ist bereits in der Beobachtungsliste."
+
+msgid "Crypto Market"
+msgstr "Krypto-Kurse"
+
+msgid "Price"
+msgstr "Kurs"
+
+msgid "Add pair"
+msgstr "Paar hinzufügen"
+
+msgid "EXIT  Close"
+msgstr "EXIT  Schließen"
+
+#, python-brace-format
+msgid "Price ({status})"
+msgstr "Kurs ({status})"
+
+msgid "loading …"
+msgstr "lädt …"
+
+msgid "last known"
+msgstr "letzter Stand"
+
+msgid "unavailable"
+msgstr "nicht verfügbar"
+
+msgid "No pairs selected"
+msgstr "Keine Paare ausgewählt"
+
+msgid "Remove pair"
+msgstr "Paar entfernen"
+
+msgid "MENU  Reorder"
+msgstr "MENU  Sortieren"
+
+msgid "Reorder watchlist"
+msgstr "Beobachtungsliste sortieren"
+
+msgid "Move up"
+msgstr "Nach oben"
+
+msgid "Move down"
+msgstr "Nach unten"
+
+msgid "Plugin settings"
+msgstr "Plugin-Einstellungen"
+
+msgid "Chart settings"
+msgstr "Chart-Einstellungen"
+
+msgid "Used the next time you open Crypto Market."
+msgstr "Gilt beim nächsten Öffnen von Krypto-Kurse."
+
+msgid "Applies while this view is open."
+msgstr "Gilt, solange diese Ansicht geöffnet ist."
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Save"
+msgstr "Speichern"
+
+msgid "Apply"
+msgstr "Übernehmen"
+
+msgid "Candle interval"
+msgstr "Kerzenintervall"
+
+msgid "Number of candles"
+msgstr "Anzahl der Kerzen"
+
+msgid "Press Green to add a trading pair"
+msgstr "Mit Grün ein Handelspaar hinzufügen"
+
+#, python-brace-format
+msgid "Candles · {time} · last known"
+msgstr "Kerzen · {time} · letzter Stand"
+
+#, python-brace-format
+msgid "Candles · {time}"
+msgstr "Kerzen · {time}"
+
+msgid "Candles unavailable"
+msgstr "Keine Kerzendaten verfügbar"
+
+msgid "Loading candles …"
+msgstr "Kerzen werden geladen …"
+
+msgid "Loading market list …"
+msgstr "Marktliste wird geladen …"
+
+msgid "The market list is unavailable."
+msgstr "Die Marktliste ist derzeit nicht verfügbar."
+
+#, python-brace-format
+msgid "Remove {pair} from the watchlist?"
+msgstr "{pair} aus der Beobachtungsliste entfernen?"
+
+msgid "Crypto Market settings could not be saved."
+msgstr "Die Einstellungen für Krypto-Kurse konnten nicht gespeichert werden."
+
+msgid "Cryptocurrency prices and candlestick charts"
+msgstr "Kryptokurse und Kerzencharts"

@@ -1,0 +1,21 @@
+<screen name="CryptoMarketPairPicker" position="center,center" size="760,574" resolution="1280,720"
+        flags="wfNoBorder" backgroundColor="#111B29">
+    <widget source="heading" render="Label" position="24,15" size="712,43" font="Regular;32"
+            foregroundColor="#ECF3FF" transparent="1" />
+    <widget source="summary" render="Label" position="25,60" size="710,25" font="Regular;17"
+            foregroundColor="#A0B1C6" transparent="1" />
+    <eLabel text="#" position="36,99" size="52,26" font="Regular;16" foregroundColor="#A0B1C6" transparent="1" />
+    <widget source="pair_column" render="Label" position="106,99" size="216,26" font="Regular;16" foregroundColor="#A0B1C6" transparent="1" />
+    <widget source="volume_column" render="Label" position="338,99" size="230,26" font="Regular;16" halign="right"
+            foregroundColor="#A0B1C6" transparent="1" />
+    <widget source="watchlist_column" render="Label" position="590,99" size="140,26" font="Regular;16" halign="center"
+            foregroundColor="#A0B1C6" transparent="1" />
+    <eLabel position="24,126" size="712,1" backgroundColor="#29384C" />
+    <widget name="pairs" position="24,132" size="712,390" font="Regular;19" scrollbarMode="showOnDemand"
+            backgroundColor="#111B29" backgroundColorSelected="#24425B" />
+    <eLabel position="25,545" size="5,16" backgroundColor="#42BB74" />
+    <widget source="key_green" render="Label" position="40,537" size="285,32" font="Regular;19" valign="center"
+            foregroundColor="#ECF3FF" transparent="1" />
+    <widget source="notice" render="Label" position="340,537" size="395,32" font="Regular;17"
+            foregroundColor="#A0B1C6" halign="right" valign="center" transparent="1" />
+</screen>

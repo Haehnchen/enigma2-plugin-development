@@ -1,0 +1,94 @@
+name: Plugin releases
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: plugin-releases-main
+  queue: max
+
+jobs:
+  release:
+    if: ${{ !github.event.deleted }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Build packages
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          shopt -s failglob
+          builds="$RUNNER_TEMP/plugin-builds"
+          mkdir -p "$builds"
+
+          range="$GITHUB_SHA"
+          if [[ "$BEFORE_SHA" != 0000000000000000000000000000000000000000 ]]; then
+            range="$BEFORE_SHA..$GITHUB_SHA"
+          fi
+          git rev-list --reverse --first-parent "$range" > "$builds/commits"
+
+          while IFS= read -r commit; do
+            mkdir "$builds/$commit"
+            git archive "$commit" | tar -x -C "$builds/$commit"
+            make -C "$builds/$commit" dist
+
+            for package in "$builds/$commit/dist/"*.ipk; do
+              filename=${package##*/}
+              mv -- "$package" "${package%/*}/${filename%%_*}.ipk"
+            done
+          done < "$builds/commits"
+
+      - name: Publish releases
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s failglob
+          builds="$RUNNER_TEMP/plugin-builds"
+          while IFS= read -r commit; do
+            tag="build-$commit"
+            draft=$(gh release view "$tag" --json isDraft --jq .isDraft 2>/dev/null || true)
+            case "$draft" in
+              false) continue ;;
+              true)
+                gh release upload "$tag" "$builds/$commit/dist/"*.ipk --clobber
+                gh release edit "$tag" --draft=false --latest
+                ;;
+              *)
+                gh release create "$tag" "$builds/$commit/dist/"*.ipk \
+                  --target "$commit" --latest \
+                  --title "Build ${commit:0:12}" --notes "Packages built from commit $commit."
+                ;;
+            esac
+          done < "$builds/commits"
+
+      - name: Keep the latest five builds
+        if: ${{ !cancelled() && steps.publish.outcome != 'skipped' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          old_tags=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
+            --jq '
+              .[]
+              | select(.draft | not)
+              | select(.tag_name | test("^build-[0-9a-f]{40}$"))
+              | [.published_at, .id, .tag_name]
+              | @tsv
+            ' \
+            | sort -t $'\t' -k1,1r -k2,2nr | tail -n +6 | cut -f3)
+          while IFS= read -r tag; do
+            if [[ -n "$tag" ]]; then
+              gh release delete "$tag" --cleanup-tag --yes
+            fi
+          done <<< "$old_tags"

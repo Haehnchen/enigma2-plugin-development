@@ -1,0 +1,31 @@
+services:
+  enigma2:
+    image: enigma2-dev:8.0
+    platform: linux/amd64
+    build:
+      context: .
+      args:
+        BUILD_JOBS: "${BUILD_JOBS:-8}"
+    init: true
+    tmpfs:
+      - /dev/input
+    ports:
+      - "127.0.0.1:${UI_PORT:-6080}:6080"
+    environment:
+      ENIGMA2_CRYPTO_SETTINGS: /var/lib/crypto-market/watchlist.json
+    volumes:
+      - type: bind
+        source: ./plugin-hello-world
+        target: /usr/lib/enigma2/python/Plugins/Extensions/HelloWorld
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./plugin-crypto-market
+        target: /usr/lib/enigma2/python/Plugins/Extensions/CryptoMarket
+        read_only: true
+        bind:
+          create_host_path: false
+      - crypto-market:/var/lib/crypto-market
+volumes:
+  crypto-market:

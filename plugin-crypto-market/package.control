@@ -1,0 +1,8 @@
+Package: enigma2-plugin-extensions-cryptomarket
+Version: 0.1.0
+Architecture: all
+Maintainer: Enigma2 plugin development contributors
+Section: base
+Priority: optional
+Depends: enigma2
+Description: Cryptocurrency prices and candlestick charts.

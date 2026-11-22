@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+test_plugin=/usr/lib/enigma2/python/Plugins/Extensions/HelloWorldTest
+mkdir -p "$test_plugin"
+touch "$test_plugin/__init__.py"
+cp -- "$(dirname -- "${BASH_SOURCE[0]}")/test-plugin.py" "$test_plugin/plugin.py"
+
+log=$(mktemp)
+trap 'rm -f "$log"' EXIT
+status=0
+timeout --kill-after=5s 45s xvfb-run -a -s '-screen 0 1280x720x24 -nolisten tcp' enigma2 >"$log" 2>&1 || status=$?
+if ((status == 0)) && grep -F '[HelloWorldTest] PASS:' "$log"; then
+    exit 0
+fi
+cat "$log" >&2
+exit "$((status == 0 ? 1 : status))"
