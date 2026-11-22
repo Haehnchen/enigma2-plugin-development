@@ -8,7 +8,7 @@ Twitch Player is an Enigma2 plugin for watching live Twitch streams via Streamli
 
 ## Installation
 
-Once the latest release includes Twitch Player, install it from a terminal on the receiver.
+Open a terminal session on the receiver and run the following command to install or update Twitch Player.
 
 ```sh
 opkg install https://github.com/Haehnchen/enigma2-plugin-development/releases/latest/download/enigma2-plugin-extensions-twitchplayer.ipk
