@@ -16,7 +16,7 @@ from .chat import Chat
 from .chat_view import ChatView
 from .i18n import _
 from .quality import StreamQuality
-from .twitch import bouquet_reference
+from .twitch import bouquet_reference, format_viewers
 
 
 class TwitchPlaybackSummary(Screen):
@@ -48,7 +48,7 @@ class TwitchPlaybackSummary(Screen):
         self["channel"].text = row.display or row.login
         self["streamTitle"].text = (row.title if playing else "") or player.playback_status
         self["game"].text = row.game if playing else ""
-        self["viewerCount"].text = str(row.viewers) if playing and row.live else "–"
+        self["viewerCount"].text = format_viewers(row.viewers) if playing and row.live else "–"
         self["duration"].text = (row.live_duration() if playing else "") or "–"
 
 
@@ -78,12 +78,12 @@ class Player(Screen):
         self["chat_position_key"] = Label(_("Position"))
         for name in ("avatar", "cover", "chat_position_icon"):
             self[name] = Pixmap()
-        for key, caption in (("ok", _("Info")), ("green", _("Channels")), ("yellow", _("Chat")),
+        for key, caption in (("ok", _("Channels")), ("green", _("Channels")), ("yellow", _("Chat")),
                              ("blue", _("Resolution")), ("exit", _("Back"))):
             self["key_" + key].setText(caption)
 
         self["actions"] = ActionMap(["OkCancelActions", "ColorActions", "InfobarEPGActions"], {
-            "cancel": self.close, "ok": self.toggle_info, "InfoPressed": self.toggle_info,
+            "cancel": self.close, "ok": self.ok_pressed, "InfoPressed": self.toggle_info,
             "green": self.browse, "yellow": self.toggle_chat, "blue": self.choose_quality,
         }, -1)
         self["chat_actions"] = ActionMap(["NumberActions"], {"1": self.cycle_chat_position}, -1)
@@ -229,6 +229,12 @@ class Player(Screen):
         self.info_visible = False
         self.visibility(self.INFO + ("avatar", "cover"), False)
         self.update_images()
+
+    def ok_pressed(self):
+        if self.info_visible:
+            self.browse()
+        else:
+            self.show_info()
 
     def toggle_info(self):
         if self.info_visible:
