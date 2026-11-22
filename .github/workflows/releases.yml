@@ -15,6 +15,8 @@ jobs:
   release:
     if: ${{ !github.event.deleted }}
     runs-on: ubuntu-latest
+    env:
+      BUILD_TAG_PATTERN: '^(build-[0-9a-f]{8,40}|release-[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{6}Z-[0-9a-f]{8,40})$'
     defaults:
       run:
         shell: bash
@@ -55,25 +57,29 @@ jobs:
         run: |
           shopt -s failglob
           builds="$RUNNER_TEMP/plugin-builds"
+          gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100" > "$builds/releases.json"
           while IFS= read -r commit; do
-            short_commit=$(git rev-parse --short=8 "$commit")
-            tag="build-$short_commit"
-            if git show-ref --verify --quiet "refs/tags/build-$commit"; then
-              tag="build-$commit"
-            fi
-            draft=$(gh release view "$tag" --json isDraft --jq .isDraft 2>/dev/null || true)
-            case "$draft" in
-              false) continue ;;
-              true)
+            # A retry must reuse the release even though its timestamp would now differ.
+            existing=$(jq -c --arg commit "$commit" '
+              first(.[][] | select(.target_commitish == $commit and (.tag_name | test(env.BUILD_TAG_PATTERN)))) // empty
+            ' "$builds/releases.json")
+            if [[ -n "$existing" ]]; then
+              if jq -e '.draft' <<< "$existing" > /dev/null; then
+                tag=$(jq -r '.tag_name' <<< "$existing")
                 gh release upload "$tag" "$builds/$commit/dist/"*.ipk --clobber
-                gh release edit "$tag" --draft=false --latest
-                ;;
-              *)
-                gh release create "$tag" "$builds/$commit/dist/"*.ipk \
-                  --target "$commit" --latest \
-                  --title "Build $short_commit" --notes ""
-                ;;
-            esac
+                gh release edit "$tag" --title "$tag" --draft=false --latest
+              fi
+              continue
+            fi
+
+            short_commit=$(git rev-parse --short=8 "$commit")
+            published_at=$(date -u '+%FT%H%M%SZ')
+            tag="release-$published_at-$short_commit"
+            gh release create "$tag" "$builds/$commit/dist/"*.ipk \
+              --target "$commit" --latest \
+              --title "$tag" --notes ""
+            # Keep timestamps distinct when one push publishes several commits.
+            sleep 1
           done < "$builds/commits"
 
       - name: Keep the latest five builds
@@ -82,10 +88,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           old_tags=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" \
-            --jq '
+            | jq -r '
               .[]
               | select(.draft | not)
-              | select(.tag_name | test("^build-[0-9a-f]{8,40}$"))
+              | select(.tag_name | test(env.BUILD_TAG_PATTERN))
               | [.published_at, .id, .tag_name]
               | @tsv
             ' \
