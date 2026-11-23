@@ -52,8 +52,9 @@ class PreferencesTests(unittest.TestCase):
 class DisplayTests(unittest.TestCase):
     def test_compact_counts_and_thresholds(self):
         examples = {0: "0", 99: "99", 210: "210", 999: "999", 1000: "1.0k", 1100: "1.1k",
-                    9949: "9.9k", 9999: "10k", 10_000: "10k", 12_700: "13k", 999_999: "1.0M",
-                    1_200_000: "1.2M"}
+                    9949: "9.9k", 9999: "10.0k", 10_000: "10.0k", 12_700: "12.7k",
+                    24_200: "24.2k", 99_949: "99.9k", 99_950: "100k", 242_000: "242k",
+                    999_499: "999k", 999_500: "1.0M", 1_200_000: "1.2M", 24_200_000: "24.2M"}
         for count, expected in examples.items():
             with self.subTest(count=count):
                 self.assertEqual(twitch.format_viewers(count), expected)

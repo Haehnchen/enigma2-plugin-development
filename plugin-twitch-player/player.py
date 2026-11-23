@@ -28,8 +28,6 @@ class TwitchPlaybackSummary(Screen):
         self["streamTitle"] = StaticText()
         self["game"] = StaticText()
         self["avatar"] = Pixmap()
-        self["viewersLabel"] = StaticText(_("Viewers"))
-        self["durationLabel"] = StaticText(_("Time live"))
         self["viewerCount"] = StaticText()
         self["duration"] = StaticText()
         self.timer = eTimer()

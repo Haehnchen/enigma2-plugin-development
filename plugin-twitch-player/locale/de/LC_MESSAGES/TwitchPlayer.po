@@ -204,9 +204,3 @@ msgstr "{quality} · Beste Qualität"
 
 msgid "Could not switch resolution."
 msgstr "Die Auflösung konnte nicht gewechselt werden."
-
-msgid "Viewers"
-msgstr "Zuschauer"
-
-msgid "Time live"
-msgstr "Live seit"

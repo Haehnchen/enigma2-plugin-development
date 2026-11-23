@@ -253,7 +253,7 @@ def format_viewers(count):
     # Switch units when rounding would produce 1000k.
     scale, suffix = (1000, "k") if count < 999_500 else (1_000_000, "M")
     tenths = (count * 10 + scale // 2) // scale
-    if tenths < 100:
+    if tenths < 1000:
         return f"{tenths // 10}.{tenths % 10}{suffix}"
     return f"{(count + scale // 2) // scale}{suffix}"
 

@@ -1,20 +1,19 @@
 <screen name="TwitchPlaybackSummary" position="0,0" size="480,320" resolution="480,320"
         flags="wfNoBorder" backgroundColor="#000000">
-    <widget source="channel" render="Label" position="12,3" size="456,66" font="Regular;50" fontScale="size;22"
+    <widget source="channel" render="Label" position="12,3" size="456,66" font="FdLcD;55" fontScale="size;22"
             foregroundColor="#87CEFA" halign="center" valign="center" noWrap="1" />
-    <widget source="streamTitle" render="RunningText" position="16,69" size="448,59" font="Regular;40"
-            foregroundColor="#FFFFFF" backgroundColor="#000000" valign="center" noWrap="1"
+    <widget source="streamTitle" render="RunningText" position="20,69" size="440,59" font="FdLcD;40"
+            valign="center" noWrap="1"
             options="movetype=running,direction=left,always=0,startpoint=0,startdelay=2000,step=2,steptime=40,oneshot=2000" />
-    <widget source="game" render="Label" position="16,127" size="448,42" font="Regular;29" fontScale="size;19"
-            foregroundColor="#BDBDBD" halign="center" valign="center" noWrap="1" />
-    <eLabel position="16,175" size="448,2" backgroundColor="#888888" />
-    <widget source="viewersLabel" render="Label" position="16,192" size="170,40" font="Regular;29"
-            foregroundColor="#BDBDBD" valign="center" noWrap="1" />
-    <widget source="durationLabel" render="Label" position="294,192" size="170,40" font="Regular;29"
-            foregroundColor="#BDBDBD" halign="right" valign="center" noWrap="1" />
-    <widget source="viewerCount" render="Label" position="16,233" size="170,65" font="Regular;45" fontScale="size;30"
-            foregroundColor="#FFFFFF" valign="center" noWrap="1" />
-    <widget source="duration" render="Label" position="294,233" size="170,65" font="Regular;45" fontScale="size;30"
-            foregroundColor="#FFFFFF" halign="right" valign="center" noWrap="1" />
-    <widget name="avatar" position="198,203" size="84,84" cornerRadius="42" alphatest="blend" />
+    <widget source="game" render="Label" position="20,127" size="440,42" font="FdLcD;30" fontScale="size;19"
+            halign="center" valign="center" noWrap="1" />
+    <eLabel position="16,175" size="448,2" backgroundColor="#FFFFFF" />
+    <widget source="viewerCount" render="Label" position="20,201" size="174,48" font="FdLcD;40"
+            noWrap="1" />
+    <widget source="duration" render="Label" position="20,258" size="174,46" font="FdLcD;40"
+            fontScale="size;23" noWrap="1" />
+    <widget name="avatar" position="198,192" size="112,112" cornerRadius="56" alphatest="blend" />
+    <widget source="global.CurrentTime" render="Label" position="320,258" size="140,46" font="FdLcD;40" halign="right">
+        <convert type="ClockToText" />
+    </widget>
 </screen>
