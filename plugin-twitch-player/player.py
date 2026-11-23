@@ -13,8 +13,9 @@ from Screens.Screen import Screen
 from twisted.internet.threads import deferToThread
 
 from .chat import Chat
-from .chat_view import ChatView
+from .chat_view import ChatView, StreamTitle
 from .i18n import _
+from .lcd_title import LcdTitle
 from .quality import StreamQuality
 from .twitch import bouquet_reference, format_viewers
 
@@ -25,7 +26,7 @@ class TwitchPlaybackSummary(Screen):
     def __init__(self, session, parent):
         super().__init__(session, parent)
         self["channel"] = StaticText()
-        self["streamTitle"] = StaticText()
+        self["streamTitle"] = LcdTitle()
         self["game"] = StaticText()
         self["avatar"] = Pixmap()
         self["viewerCount"] = StaticText()
@@ -44,7 +45,7 @@ class TwitchPlaybackSummary(Screen):
         row = player.row
         playing = player.is_playing()
         self["channel"].text = row.display or row.login
-        self["streamTitle"].text = (row.title if playing else "") or player.playback_status
+        self["streamTitle"].setText((row.title if playing else "") or player.playback_status)
         self["game"].text = row.game if playing else ""
         self["viewerCount"].text = format_viewers(row.viewers) if playing and row.live else "–"
         self["duration"].text = (row.live_duration() if playing else "") or "–"
@@ -52,9 +53,9 @@ class TwitchPlaybackSummary(Screen):
 
 class Player(Screen):
     skin = (Path(__file__).with_name("skins") / "player.xml").read_text(encoding="utf-8")
-    INFO = ("info_bg", "initial", "name", "category", "details", "viewers",
-            "icon_ok", "icon_green", "icon_yellow", "icon_blue", "icon_exit",
-            "key_ok", "key_green", "key_yellow", "key_blue", "key_exit")
+    INFO = ("info_bg", "initial", "name", "category", "details",
+            "icon_ok", "icon_green", "icon_yellow", "icon_red", "icon_exit",
+            "key_ok", "key_green", "key_yellow", "key_red", "key_exit")
     CHAT = ("chat_bg", "chat_name", "chat_position_icon", "chat_position_key", "chat_text")
 
     def __init__(self, session, library, row):
@@ -71,20 +72,24 @@ class Player(Screen):
         self.playback_status = ""
 
         for name in self.INFO + ("chat_bg", "chat_name", "chat_top_left"):
-            self[name] = Pixmap() if name.startswith("icon_") else Label()
+            if name == "details":
+                self[name] = StreamTitle()
+            else:
+                self[name] = Pixmap() if name.startswith("icon_") else Label()
         self["chat_text"] = ChatView()
         self["chat_position_key"] = Label(_("Position"))
         for name in ("avatar", "cover", "chat_position_icon"):
             self[name] = Pixmap()
         for key, caption in (("ok", _("Channels")), ("green", _("Channels")), ("yellow", _("Chat")),
-                             ("blue", _("Resolution")), ("exit", _("Back"))):
+                             ("red", _("Resolution")), ("exit", _("Close"))):
             self["key_" + key].setText(caption)
 
         self["actions"] = ActionMap(["OkCancelActions", "DirectionActions", "ColorActions", "InfobarEPGActions"], {
             "cancel": self.close, "ok": self.ok_pressed, "InfoPressed": self.toggle_info,
             "left": self.browse, "right": self.browse,
-            "green": self.browse, "yellow": self.toggle_chat, "blue": self.choose_quality,
+            "green": self.browse, "yellow": self.toggle_chat, "red": self.choose_quality,
         }, -1)
+        self.bind_receiver_menus()
         self["chat_actions"] = ActionMap(["NumberActions"], {"1": self.cycle_chat_position}, -1)
         self["chat_actions"].setEnabled(False)
 
@@ -99,6 +104,24 @@ class Player(Screen):
 
     def createSummary(self):
         return TwitchPlaybackSummary
+
+    def bind_receiver_menus(self):
+        from Screens.InfoBar import InfoBar
+
+        infobar = InfoBar.instance
+        if infobar is None:
+            return
+        # Keep the receiver's menus and extension list active only while this player has focus.
+        for name in ("MenuActions", "InstantExtensionsActions"):
+            if name in infobar:
+                actions = infobar[name]
+                self.onExecBegin.append(actions.execBegin)
+                self.onExecEnd.append(actions.execEnd)
+        if hasattr(infobar, "ButtonSetupGlobal"):
+            self["blue_shortcuts"] = ActionMap(["ButtonSetupActions"], {
+                key: partial(infobar.ButtonSetupGlobal, key) for key in ("blue", "blue_long")
+            }, -10)
+            self.onExecEnd.append(infobar.clearLongKeyPressed)
 
     def start(self):
         self["chat_top_left"].hide()
@@ -164,7 +187,7 @@ class Player(Screen):
         self.row = row
         self.quality = quality
         self.playback_status = ""
-        self["key_blue"].setText(_("Resolution") + (" · " + quality if quality else ""))
+        self["key_red"].setText(_("Resolution") + (" · " + quality if quality else ""))
 
         if self.chat and channel_changed:
             self.stop_chat()
@@ -194,9 +217,8 @@ class Player(Screen):
         display = self.row.display or self.row.login
         self["name"].setText(display)
         self["initial"].setText(display[:1].upper())
-        self["category"].setText(self.row.game)
+        self["category"].setText(" · ".join(filter(None, (self.row.game, self.row.live_stats()))))
         self["details"].setText(self.playback_status or self.row.title)
-        self["viewers"].setText(self.row.live_stats())
         self.summaries.update_stream()
         self.update_images()
 

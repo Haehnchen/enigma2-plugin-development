@@ -1,3 +1,4 @@
+from bisect import bisect_right
 from collections import deque
 import re
 from typing import NamedTuple
@@ -8,7 +9,8 @@ FALLBACK_COLORS = (0xFF7F50, 0x9ACD32, 0x1E90FF, 0xFF69B4, 0xBA55D3,
 TWITCH_EMOTE = "https://static-cdn.jtvnw.net/emoticons/v2/{}/static/dark/1.0"
 # Twemoji graphics by Twitter and contributors (https://github.com/jdecked/twemoji),
 # licensed under CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
-TWEMOJI = "https://cdn.jsdelivr.net/gh/jdecked/twemoji@v17.0.2/assets/72x72/{}.png"
+# ePicLoad rasterizes the vector directly at the view's requested size.
+TWEMOJI = "https://cdn.jsdelivr.net/gh/jdecked/twemoji@v17.0.2/assets/svg/{}.svg"
 # Match the whole emoji, including skin tones, flags and joined characters.
 PICTOGRAPH = r"[\U0001F300-\U0001FAFF\u2600-\u27BF\u231A-\u231B\u23E9-\u23F3\u2B50\u2B55]"
 EMOJI_PART = PICTOGRAPH + r"\uFE0F?[\U0001F3FB-\U0001F3FF]?"
@@ -36,16 +38,64 @@ def name_color(name, tag):
     return FALLBACK_COLORS[value % len(FALLBACK_COLORS)]
 
 
-def plain_spans(text):
+def emoji_spans(text):
     cursor = 0
     for match in EMOJI.finditer(text):
-        yield from (Span(word) for word in re.findall(r"\s+|\S+", text[cursor:match.start()]))
+        if cursor < match.start():
+            yield Span(text[cursor:match.start()])
         emoji = match.group()
         asset = emoji if "\u200d" in emoji else emoji.replace("\ufe0f", "")
         key = "-".join(f"{ord(char):x}" for char in asset)
         yield Span(emoji, image=TWEMOJI.format(key))
         cursor = match.end()
-    yield from (Span(word) for word in re.findall(r"\s+|\S+", text[cursor:]))
+    if cursor < len(text):
+        yield Span(text[cursor:])
+
+
+def title_line(text, width, measure, icon_size, *, ellipsis=False):
+    """Position text and whole emoji on one line, preserving spaces between runs."""
+    marker = measure("|")
+
+    def text_width(value):
+        return max(0, measure(value + "|") - marker)
+
+    runs = []
+    end = 0
+    for span in emoji_spans(text):
+        length = icon_size if span.image else text_width(span.text)
+        runs.append((end, length, span))
+        end += length
+        if end > width:
+            break
+    if end <= width:
+        return runs
+
+    dots = min(width, text_width("…")) if ellipsis else 0
+    limit = width - dots
+    while runs and runs[-1][0] + runs[-1][1] > limit:
+        x, length, span = runs.pop()
+        if x < limit and not span.image:
+            if ellipsis:
+                count = bisect_right(range(len(span.text) + 1), limit - x,
+                                     key=lambda n: text_width(span.text[:n])) - 1
+                span = Span(span.text[:count])
+                length = text_width(span.text)
+            else:
+                length = limit - x
+            runs.append((x, length, span))
+            break
+    if dots:
+        x = runs[-1][0] + runs[-1][1] if runs else 0
+        runs.append((x, dots, Span("…")))
+    return runs
+
+
+def plain_spans(text):
+    for span in emoji_spans(text):
+        if span.image:
+            yield span
+        else:
+            yield from (Span(word) for word in re.findall(r"\s+|\S+", span.text))
 
 
 def message_spans(name, color, body, emotes):

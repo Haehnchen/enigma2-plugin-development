@@ -1,5 +1,7 @@
 from datetime import datetime, timezone, timedelta
 from gettext import translation
+from gzip import compress
+from io import BytesIO
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -50,6 +52,21 @@ class PreferencesTests(unittest.TestCase):
 
 
 class DisplayTests(unittest.TestCase):
+    def test_svg_download_accepts_gzip_and_plain_vectors(self):
+        vector = b'<svg viewBox="0 0 36 36"></svg>'
+        for encoding, body in (("gzip", compress(vector)), ("identity", vector)):
+            with self.subTest(encoding=encoding):
+                response = BytesIO(body)
+                response.headers = {"Content-Encoding": encoding}
+                with patch.object(twitch, "urlopen", return_value=response) as fetch:
+                    path = Path(twitch.download_preview("https://example.org/1f9a9.svg"))
+                try:
+                    self.assertEqual(fetch.call_args.args[0].get_header("Accept-encoding"), "gzip")
+                    self.assertEqual(path.suffix, ".svg")
+                    self.assertEqual(path.read_bytes(), vector)
+                finally:
+                    path.unlink()
+
     def test_compact_counts_and_thresholds(self):
         examples = {0: "0", 99: "99", 210: "210", 999: "999", 1000: "1.0k", 1100: "1.1k",
                     9949: "9.9k", 9999: "10.0k", 10_000: "10.0k", 12_700: "12.7k",

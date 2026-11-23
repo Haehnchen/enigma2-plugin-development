@@ -5,10 +5,11 @@ from pathlib import Path
 from Components.ActionMap import ActionMap
 from Components.Label import Label
 from Components.Sources.List import List
-from enigma import eListboxPythonMultiContent, eTimer
+from enigma import eTimer
 from Plugins.Plugin import PluginDescriptor
 from Screens.Screen import Screen
 
+from .channel_grid import ChannelCards
 from .i18n import _
 from .library import Library
 from .player import Player
@@ -32,7 +33,7 @@ class Browser(Screen):
         self.selected = selected
         self.live_names = []
         self.page_rows = []
-        self.preview_size = None
+        self.cards = None
         self.stats_timer = eTimer()
         self.stats_timer.callback.append(self.update_badges)
 
@@ -61,17 +62,11 @@ class Browser(Screen):
         grid = self["channels"]
         grid.enableAutoNavigation(False)
 
-        # Use the active skin's scaled pixmap rectangles for the Twitch requests.
-        elements = grid.master.template["modes"][grid.mode][1]
-        pixmaps = (eListboxPythonMultiContent.TYPE_PIXMAP, eListboxPythonMultiContent.TYPE_PIXMAP_ALPHATEST,
-                   eListboxPythonMultiContent.TYPE_PIXMAP_ALPHABLEND)
-        sizes = {entry[5]: entry[3:5] for entry in elements if entry[0] in pixmaps}
-        self.preview_size = sizes[grid.indexNames["preview"]]
-        self.avatar_size = sizes[grid.indexNames["avatar"]]
+        self.cards = ChannelCards(grid)
 
         self.library.listeners.append(self.render)
         if self.owner:
-            self.library.start(self.preview_size, self.avatar_size[0])
+            self.library.start(self.cards.preview_size, self.cards.avatar_size[0])
 
     def resume(self):
         self.render()
@@ -88,7 +83,7 @@ class Browser(Screen):
 
     def render(self):
         """Keep the selected channel on screen when a refresh reorders the live list."""
-        if not self.execing or not self.preview_size:
+        if not self.execing or not self.cards:
             return
 
         channels = self.library.channels
@@ -113,37 +108,40 @@ class Browser(Screen):
             online=online if self.library.revision or not channels else "–", total=len(channels))
         self["status"].setText("   ·   ".join(filter(None, (self.library.status, count, page_label))))
 
-        loader = self.library.previews
-        cards, previews, avatars = [], {}, {}
-        for i, row in enumerate(self.page_rows):
-            name = row.display or row.login
-            preview = (row.image, self.preview_size, self.library.revision)
-            avatar = (row.avatar, self.avatar_size, 0)
-            cards.append(Card(
-                name, row.title, row.game, row.live_stats(), row.login[:2].upper(), name[:1].upper(),
-                loader.cached(preview), loader.cached(avatar),
-            ))
-            for field, key, batch in (("preview", preview, previews), ("avatar", avatar, avatars)):
-                if key[0]:
-                    batch.setdefault(key, []).append(partial(self.image_loaded, i, field))
-
-        self["channels"].list = cards
-        if cards:
+        wanted = {"preview": {}, "avatar": {}, "emoji": {}}
+        self["channels"].list = [self.draw_card(i, wanted) for i in range(len(self.page_rows))]
+        if self.page_rows:
             self["channels"].index = index % PAGE
-        loader.request(previews | avatars)
+        self.library.previews.request({
+            key: [partial(self.image_loaded, i) for i in rows]
+            for batch in wanted.values() for key, rows in batch.items()
+        })
 
-    def image_loaded(self, index, field, pixmap):
+    def draw_card(self, index, wanted=None):
+        row = self.page_rows[index]
+        name = row.display or row.login
+
+        def image(kind, url, size, revision=0):
+            key = (url, size, revision)
+            if wanted is not None and url:
+                wanted[kind].setdefault(key, set()).add(index)
+            return self.library.previews.cached(key)
+
+        card = Card(name, row.title, row.game, row.live_stats(), row.login[:2].upper(), name[:1].upper(),
+                    image("preview", row.image, self.cards.preview_size, self.library.revision),
+                    image("avatar", row.avatar, self.cards.avatar_size))
+        return self.cards.draw(card, lambda url, size: image("emoji", url, (size, size)))
+
+    def image_loaded(self, index, pixmap):
         if pixmap is not None:
-            grid = self["channels"]
-            grid.updateEntry(index, grid.list[index]._replace(**{field: pixmap}))
+            self["channels"].updateEntry(index, self.draw_card(index))
 
     def update_badges(self):
         for i, row in enumerate(self.page_rows):
             text = row.live_stats()
             grid = self["channels"]
-            card = grid.list[i]
-            if card.stats != text:
-                grid.updateEntry(i, card._replace(stats=text))
+            if grid.list[i][0].stats != text:
+                grid.updateEntry(i, self.draw_card(i))
 
     def move_by(self, step):
         names = self.live_names
@@ -163,15 +161,20 @@ class Browser(Screen):
         row = self.library.channels.get(self.selected)
         if row and row.live:
             if self.owner:
-                self.session.open(Player, self.library, row)
+                self.session.openWithCallback(partial(self.close, True), Player, self.library, row)
             else:
                 self.close(row)
 
 
-def main(session, **kwargs):
-    session.open(Browser)
+def main(session, onClose=None, **kwargs):
+    def browser_closed(left_player=False):
+        if left_player and onClose:
+            onClose()
+
+    session.openWithCallback(browser_closed, Browser)
 
 
 def Plugins(**kwargs):
     return PluginDescriptor(name="Twitch Player", description=_("Twitch channels, live streams and chat"),
-                            icon="plugin.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=main)
+                            icon="plugin.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=main,
+                            closeMode=PluginDescriptor.DO_CLOSE_RECURSIVE)

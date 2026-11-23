@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from gzip import GzipFile
 from json import dump, dumps, load, loads
 from os import fdopen, replace, unlink
 from pathlib import Path
@@ -342,13 +343,20 @@ def fetch_channels(names, size, avatar_width):
 
 
 def download_preview(url):
-    """Return a temporary file for ePicLoad, which detects the image format from its contents."""
-    with urlopen(url, timeout=7) as response:
-        data = response.read(2 * 1024 * 1024 + 1)
-    if not data or len(data) > 2 * 1024 * 1024:
+    """Fetch an image for ePicLoad, accepting compressed SVGs from the emoji CDN."""
+    limit = 2 * 1024 * 1024
+    svg = url.endswith(".svg")
+    request = Request(url, headers={"Accept-Encoding": "gzip"}) if svg else url
+    with urlopen(request, timeout=7) as response:
+        if response.headers.get("Content-Encoding", "").lower() == "gzip":
+            with GzipFile(fileobj=response) as source:
+                data = source.read(limit + 1)
+        else:
+            data = response.read(limit + 1)
+    if not data or len(data) > limit:
         raise ValueError("Unexpected thumbnail size")
 
-    fd, path = mkstemp(prefix="twitch-preview-")
+    fd, path = mkstemp(prefix="twitch-preview-", suffix=".svg" if svg else "")
     try:
         with fdopen(fd, "wb") as file:
             file.write(data)

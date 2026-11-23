@@ -12,19 +12,16 @@
             scrollbarMode="showNever" padding="0" transparent="1" zPosition="1" />
 
     <widget name="info_bg" position="0,594" size="1280,126" backgroundColor="infobar-bkgrnd" zPosition="2" />
-    <widget name="initial" position="8,600" size="42,42" font="Body;22" halign="center" valign="center"
-            foregroundColor="key_text" backgroundColor="infobar_sunken" cornerRadius="100" zPosition="4" />
-    <widget name="avatar" position="8,600" size="42,42" cornerRadius="100" alphatest="blend" zPosition="5" />
-    <widget name="name" position="60,599" size="979,25" font="Body;20" valign="center"
+    <widget name="initial" position="8,599" size="76,76" font="Body;34" halign="center" valign="center"
+            foregroundColor="key_text" backgroundColor="infobar_sunken" cornerRadius="38" zPosition="4" />
+    <widget name="avatar" position="8,599" size="76,76" cornerRadius="38" alphatest="blend" zPosition="5" />
+    <widget name="name" position="96,599" size="1080,25" font="Body;20" valign="center"
             foregroundColor="key_text" transparent="1" noWrap="1" zPosition="3" />
-    <widget name="category" position="60,624" size="979,18" font="Body;14" valign="center"
+    <widget name="category" position="96,624" size="1080,21" font="Body;16" valign="center"
             foregroundColor="infobar-frgrnd" transparent="1" noWrap="1" zPosition="3" />
-    <widget name="details" position="8,647" size="1173,27" font="Body;21" valign="center"
-            foregroundColor="key_text" transparent="1" noWrap="1" zPosition="3" />
-
-    <widget name="viewers" position="1104,601" size="168,20" font="Body;15" halign="right" valign="center"
-            foregroundColor="infobar-frgrnd" transparent="1" noWrap="1" zPosition="3" />
-    <widget name="cover" position="1209,628" size="63,84" cornerRadius="3" alphatest="blend" zPosition="3" />
+    <widget name="details" position="96,647" size="1080,27" font="Body;21" selection="0" scrollbarMode="showNever"
+            foregroundColor="key_text" transparent="1" padding="0" zPosition="3" />
+    <widget name="cover" position="1188,601" size="84,112" cornerRadius="3" alphatest="blend" zPosition="3" />
 
     <widget name="icon_ok" position="8,692" size="24,19" pixmap="buttons/key_ok.png" scale="centerScaled" alphatest="blend" zPosition="3" />
     <widget name="key_ok" position="38,690" size="73,23" font="Body;15" valign="center" foregroundColor="key_text" transparent="1" zPosition="3" />
@@ -32,8 +29,8 @@
     <widget name="key_green" position="146,690" size="98,23" font="Body;15" valign="center" foregroundColor="key_text" transparent="1" zPosition="3" />
     <widget name="icon_yellow" position="250,692" size="24,19" pixmap="buttons/key_yellow.png" scale="centerScaled" alphatest="blend" zPosition="3" />
     <widget name="key_yellow" position="280,690" size="73,23" font="Body;15" valign="center" foregroundColor="key_text" transparent="1" zPosition="3" />
-    <widget name="icon_blue" position="359,692" size="24,19" pixmap="buttons/key_blue.png" scale="centerScaled" alphatest="blend" zPosition="3" />
-    <widget name="key_blue" position="389,690" size="162,23" font="Body;15" valign="center" foregroundColor="key_text" transparent="1" noWrap="1" zPosition="3" />
+    <widget name="icon_red" position="359,692" size="24,19" pixmap="buttons/key_red.png" scale="centerScaled" alphatest="blend" zPosition="3" />
+    <widget name="key_red" position="389,690" size="162,23" font="Body;15" valign="center" foregroundColor="key_text" transparent="1" noWrap="1" zPosition="3" />
     <widget name="icon_exit" position="557,692" size="28,19" pixmap="buttons/key-exit.png" scale="centerScaled" alphatest="blend" zPosition="3" />
     <widget name="key_exit" position="591,690" size="98,23" font="Body;15" valign="center" foregroundColor="key_text" transparent="1" zPosition="3" />
 </screen>
