@@ -74,7 +74,13 @@ class DisplayTests(unittest.TestCase):
                     999_499: "999k", 999_500: "1.0M", 1_200_000: "1.2M", 24_200_000: "24.2M"}
         for count, expected in examples.items():
             with self.subTest(count=count):
-                self.assertEqual(twitch.format_viewers(count), expected)
+                self.assertEqual(twitch.format_count(count), expected)
+
+    def test_follower_count_keeps_one_decimal_and_distinguishes_zero_from_missing(self):
+        for count, expected in ((None, ""), (0, "0"), (1_200, "1.2k"), (802_645, "802.6k"),
+                                (6_822_771, "6.8M")):
+            with self.subTest(count=count):
+                self.assertEqual(twitch.Channel("eslcs", followers=count).follower_count(), expected)
 
     def test_online_time_uses_stream_start_and_handles_missing_metadata(self):
         now = datetime(2026, 11, 1, 19, 0, tzinfo=timezone.utc)
@@ -123,9 +129,12 @@ class TwitchTests(unittest.TestCase):
     def test_stream_metadata_batched_at_requested_size(self, request):
         request.side_effect = [{"data": {"users": [
             {"login": "a0", "displayName": "A0", "avatar": "small", "profileImageURL": "large",
+             "followers": {"totalCount": 150_000},
              "stream": {"title": "Final", "viewersCount": 0, "createdAt": "2026-11-01T12:00:00Z",
              "game": {"name": "Chess", "boxArtURL": "portrait-{width}x{height}.jpg"}, "previewImageURL": "image"}},
-            {"login": "a1", "displayName": "A1", "stream": None, "profileImageURL": "avatar"}, None]}},
+            {"login": "a1", "displayName": "A1", "stream": None, "profileImageURL": "avatar",
+             "followers": {"totalCount": 0}},
+            {"login": "a2", "displayName": "A2", "followers": None}, None]}},
             {"data": {"users": []}}]
         rows = twitch.fetch_channels([f"a{i}" for i in range(101)], (432, 243), 30)
         self.assertTrue(rows["a0"].live)
@@ -133,13 +142,17 @@ class TwitchTests(unittest.TestCase):
         self.assertEqual((rows["a0"].avatar, rows["a0"].profile_image), ("small", "large"))
         self.assertEqual(rows["a0"].cover, "portrait-{width}x{height}.jpg")
         self.assertEqual(rows["a0"].started_at, datetime(2026, 11, 1, 12, tzinfo=timezone.utc))
+        self.assertEqual(rows["a0"].followers, 150_000)
         self.assertFalse(rows["a1"].cover)
         self.assertFalse(rows["a1"].live)
         self.assertEqual(rows["a1"].image, "")
+        self.assertEqual(rows["a1"].followers, 0)
+        self.assertIsNone(rows["a2"].followers)
         payloads = [call.kwargs["payload"] for call in request.call_args_list]
         self.assertEqual([len(p["variables"]["logins"]) for p in payloads], [100, 1])
         self.assertIn("width:432,height:243", payloads[0]["query"])
         self.assertIn("avatar:profileImageURL(width:50)", payloads[0]["query"])
+        self.assertIn("followers{totalCount}", payloads[0]["query"])
 
     def setUp(self):
         temporary = TemporaryDirectory()

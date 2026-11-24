@@ -248,13 +248,13 @@ class Account:
             params["after"] = cursor
 
 
-def format_viewers(count):
+def format_count(count, *, keep_decimal=False):
     if count < 1000:
         return str(count)
     # Switch units when rounding would produce 1000k.
     scale, suffix = (1000, "k") if count < 999_500 else (1_000_000, "M")
     tenths = (count * 10 + scale // 2) // scale
-    if tenths < 1000:
+    if keep_decimal or tenths < 1000:
         return f"{tenths // 10}.{tenths % 10}{suffix}"
     return f"{(count + scale // 2) // scale}{suffix}"
 
@@ -281,6 +281,7 @@ class Channel:
     profile_image: str = ""
     started_at: datetime | None = None
     cover: str = ""
+    followers: int | None = None
 
     @property
     def live(self):
@@ -297,9 +298,12 @@ class Channel:
     def live_stats(self, now=None):
         if not self.live:
             return ""
-        count = format_viewers(self.viewers)
+        count = format_count(self.viewers)
         duration = self.live_duration(now)
         return f"{count} · {duration}" if duration else count
+
+    def follower_count(self):
+        return "" if self.followers is None else format_count(self.followers, keep_decimal=True)
 
 
 def fetch_channels(names, size, avatar_width):
@@ -310,6 +314,7 @@ def fetch_channels(names, size, avatar_width):
     query = (
         "query($logins:[String!]!){users(logins:$logins){login displayName profileImageURL(width:150) "
         f"avatar:profileImageURL(width:{avatar_size}) "
+        "followers{totalCount} "
         "stream{title viewersCount createdAt game{name boxArtURL} "
         f"previewImageURL(width:{width},height:{height})" + "}}}"
     )
@@ -338,6 +343,7 @@ def fetch_channels(names, size, avatar_width):
                 profile_image=user.get("profileImageURL") or "",
                 started_at=parse_start(stream.get("createdAt")),
                 cover=game.get("boxArtURL") or "",
+                followers=(user.get("followers") or {}).get("totalCount"),
             )
     return result
 

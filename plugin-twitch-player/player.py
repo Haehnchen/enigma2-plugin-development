@@ -17,7 +17,7 @@ from .chat_view import ChatView, StreamTitle
 from .i18n import _
 from .lcd_title import LcdTitle
 from .quality import StreamQuality
-from .twitch import bouquet_reference, format_viewers
+from .twitch import bouquet_reference, format_count
 
 
 class TwitchPlaybackSummary(Screen):
@@ -30,6 +30,7 @@ class TwitchPlaybackSummary(Screen):
         self["game"] = StaticText()
         self["avatar"] = Pixmap()
         self["viewerCount"] = StaticText()
+        self["followerCount"] = StaticText()
         self["duration"] = StaticText()
         self.timer = eTimer()
         self.timer.callback.append(self.update_stream)
@@ -47,7 +48,8 @@ class TwitchPlaybackSummary(Screen):
         self["channel"].text = row.display or row.login
         self["streamTitle"].setText((row.title if playing else "") or player.playback_status)
         self["game"].text = row.game if playing else ""
-        self["viewerCount"].text = format_viewers(row.viewers) if playing and row.live else "–"
+        self["viewerCount"].text = format_count(row.viewers) if playing and row.live else "–"
+        self["followerCount"].text = (row.follower_count() if playing else "") or "–"
         self["duration"].text = (row.live_duration() if playing else "") or "–"
 
 
@@ -217,7 +219,9 @@ class Player(Screen):
         display = self.row.display or self.row.login
         self["name"].setText(display)
         self["initial"].setText(display[:1].upper())
-        self["category"].setText(" · ".join(filter(None, (self.row.game, self.row.live_stats()))))
+        followers = self.row.follower_count() if self.is_playing() else ""
+        follower_stats = _("{count} followers").format(count=followers) if followers else ""
+        self["category"].setText(" · ".join(filter(None, (self.row.game, follower_stats, self.row.live_stats()))))
         self["details"].setText(self.playback_status or self.row.title)
         self.summaries.update_stream()
         self.update_images()

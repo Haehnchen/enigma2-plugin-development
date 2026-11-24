@@ -5,12 +5,15 @@
     <widget name="streamTitle" position="20,69" size="440,59" font="FdLcD;40" />
     <widget source="game" render="Label" position="20,127" size="440,42" font="FdLcD;30" fontScale="size;19"
             halign="center" valign="center" noWrap="1" />
-    <eLabel position="16,175" size="448,2" backgroundColor="#FFFFFF" />
+    <!-- Use the same gray as the standard LCD progress bar. -->
+    <eLabel position="16,175" size="448,2" backgroundColor="#888888" />
     <widget source="viewerCount" render="Label" position="20,201" size="174,48" font="FdLcD;40"
             noWrap="1" />
     <widget source="duration" render="Label" position="20,258" size="174,46" font="FdLcD;40"
             fontScale="size;23" noWrap="1" />
     <widget name="avatar" position="198,192" size="112,112" cornerRadius="56" alphatest="blend" />
+    <widget source="followerCount" render="Label" position="320,201" size="140,48" font="FdLcD;40"
+            fontScale="size;23" halign="right" noWrap="1" />
     <widget source="global.CurrentTime" render="Label" position="320,258" size="140,46" font="FdLcD;40" halign="right">
         <convert type="ClockToText" />
     </widget>

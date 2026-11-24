@@ -67,6 +67,9 @@ msgstr "Bitte einen Kanalnamen aus Buchstaben, Ziffern oder Unterstrichen eingeb
 msgid "Followed channels unavailable"
 msgstr "Gefolgte Kanäle nicht verfügbar"
 
+msgid "{count} followers"
+msgstr "{count} Follower"
+
 msgid "Info"
 msgstr "Info"
 
