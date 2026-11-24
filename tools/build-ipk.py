@@ -29,7 +29,7 @@ def package_version(base_version):
     return f"{base_version}+git{count}+{commit[:8]}"
 
 
-def tar_gz(files):
+def tar_gz(files, executables=()):
     output = BytesIO()
     directories = sorted({parent for path in files for parent in path.parents if parent.parts})
     with GzipFile(fileobj=output, mode="wb", mtime=0) as compressed:
@@ -42,7 +42,7 @@ def tar_gz(files):
             for path, content in files.items():
                 entry = tarfile.TarInfo(f"./{path}")
                 entry.size = len(content)
-                entry.mode = 0o644
+                entry.mode = 0o755 if path in executables else 0o644
                 archive.addfile(entry, BytesIO(content))
     return output.getvalue()
 
@@ -55,6 +55,8 @@ def main():
     parser.add_argument("files", type=Path, nargs="+")
     parser.add_argument("--display-files", type=Path, nargs="+", default=[],
                         help="assets under display/ to install under /usr/share/enigma2/display/")
+    parser.add_argument("--executable-files", type=Path, nargs="+", default=[],
+                        help="plugin files that must be installed with mode 0755")
     args = parser.parse_args()
 
     if not fullmatch(r"[A-Za-z][A-Za-z0-9_]*", args.extension):
@@ -63,6 +65,9 @@ def main():
         parser.error("package files must use paths relative to the plugin directory")
     if any(path.parts[:1] != ("display",) for path in args.display_files):
         parser.error("display files must be under display/")
+
+    if not set(args.executable_files).issubset(args.files):
+        parser.error("executable files must also appear in the plugin file list")
 
     control = args.control.read_text(encoding="utf-8")
     fields = dict(line.split(": ", 1) for line in control.splitlines() if ": " in line)
@@ -81,7 +86,8 @@ def main():
     package = tar_gz({
         PurePosixPath("debian-binary"): b"2.0\n",
         PurePosixPath("control.tar.gz"): tar_gz({PurePosixPath("control"): control.encode("utf-8")}),
-        PurePosixPath("data.tar.gz"): tar_gz(payload),
+        PurePosixPath("data.tar.gz"): tar_gz(
+            payload, {destination / path for path in args.executable_files}),
     })
 
     args.output.mkdir(parents=True, exist_ok=True)

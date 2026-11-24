@@ -1,0 +1,14 @@
+{
+  "joyn.zip": ["https://repo.kodinerds.net/addons/matrix/zip/plugin.video.joyn/plugin.video.joyn-2.5.47+matrix.1.zip", "fb4d7a4a82447b72eb2cab97b6aa94ce8b08bab86ac87df9d84174f7ae2fe320"],
+  "dash2ts.tar.gz": ["https://codeload.github.com/jojo61/dash2ts/tar.gz/b3fcf734bc8c7329c718c54903fae2c659f58641", "d6c8582ff05f111931263d4447487af097cc6b99b0568a976b48b2e90bed378c"],
+  "inputstream.ipk": ["STATIC/static-vusolo4k/kodi-addon-inputstream-adaptive-piers_22.3.24+gitr0+4bbfbc67f9_a4a4172467-r1_cortexa15hf-neon-vfpv4.ipk", "9a7e51d8d098df08108c2ec1365e3068126f141fb043d38f3a5bfcc34700cb48"],
+  "pugixml.ipk": ["libpugixml1_1.16-r0_cortexa15hf-neon-vfpv4.ipk", "055c0f383bcc16a99834f440cf79fd34972f0babe53646dea4d544dbe342cd4a"],
+  "tinyxml.ipk": ["libtinyxml2-11_11.0.0-r0_cortexa15hf-neon-vfpv4.ipk", "84f8ba8d702d7bbb5fdf32bb851b4e4d7e9377905aa890a2d8adff010f9e2cb9"],
+  "tinyxml-dev.ipk": ["libtinyxml2-dev_11.0.0-r0_cortexa15hf-neon-vfpv4.ipk", "30571d61ba124a1355a49b6552ce9bb4fa8cd4d9b8c7922ec94c9740c171fae2"],
+  "ffmpeg-dev.ipk": ["ffmpeg-dev_9.0.2-r0_cortexa15hf-neon-vfpv4.ipk", "6084e39da7a6cbc1b9adead9d1e912eebe5699fd15c88db71c53a0c3ad114dd6"],
+  "avcodec.ipk": ["libavcodec63_9.0.2-r0_cortexa15hf-neon-vfpv4.ipk", "eebcc7976ec2fe9953ba27ee5fe2dc0ffab52cce1e1f62ca1db99dac569c1e83"],
+  "avformat.ipk": ["libavformat63_9.0.2-r0_cortexa15hf-neon-vfpv4.ipk", "0aedc6d015e722f21ccf20ee9f844dba41dc1a28120ceb6af242d1323310022e"],
+  "avutil.ipk": ["libavutil61_9.0.2-r0_cortexa15hf-neon-vfpv4.ipk", "3967cad4223b1d805a7962443de49495ab6283f26fb17bc4f4a69c89ee2c36ce"],
+  "curl.ipk": ["libcurl4_8.23.0-r0_cortexa15hf-neon-vfpv4.ipk", "0a0e97f28735cb4dac9c346170b90e009a4c1f5f66a71a758f58335c3b67bf28"],
+  "curl-dev.ipk": ["curl-dev_8.23.0-r0_cortexa15hf-neon-vfpv4.ipk", "d8ebf26aa31177a86361dcf28d30d7e60330b9728238a0563ab843f3ca9bb080"]
+}

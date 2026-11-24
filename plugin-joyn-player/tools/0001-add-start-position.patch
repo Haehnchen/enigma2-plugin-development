@@ -1,0 +1,94 @@
+diff --git a/src/dash2ts.cpp b/src/dash2ts.cpp
+index 85da717..4db7d72 100644
+--- a/src/dash2ts.cpp
++++ b/src/dash2ts.cpp
+@@ -20,6 +20,7 @@ void usage() {
+     printf("dash2ts Version %s\n",VERSION);
+     printf("Usage: dash2ts -u url_to_manifest.mpd\n");
+     printf("               -p portnr\n");
++    printf("              [-s start_seconds]\n");
+     printf("              [-k path_to_kodi]\n");
+     printf("              [-h http_headers]\n");
+     printf("              [-d drm_token] or [-w widevine_url]\n");
+@@ -65,6 +66,7 @@ main(int argc, char *argv[])
+     char *url = NULL;
+     int api_version = 0;
+     int portno;
++    int start_position = 0;
+     
+     std::string orf_widevine_url ="https://drm.ors.at/acquire-license/widevine?BrandGuid=13f2e056-53fe-4469-ba6d-999970dbe549&userToken=";
+     std::string cenc = "com.widevine.alpha";
+@@ -73,7 +75,7 @@ main(int argc, char *argv[])
+     
+     printf("-------Start---------\n");
+     int c;
+-    while ((c = getopt (argc, argv, "u:p:k:d:w:h:v")) != -1) {
++    while ((c = getopt (argc, argv, "u:p:k:d:w:h:s:v")) != -1) {
+         switch (c) {
+             case 'u': // URL to Manifest
+                 url = optarg;
+@@ -98,6 +100,9 @@ main(int argc, char *argv[])
+                 headers.clear();
+                 headers.append(optarg);
+                 continue;
++            case 's': // Start position in seconds
++                start_position = atoi(optarg);
++                continue;
+             case 'v': // Verbose
+                 verbose = true;
+                 continue;             
+@@ -125,7 +130,7 @@ main(int argc, char *argv[])
+     signal(SIGINT, signal_callback_handler);
+ 
+     h = new AddonHandler(path_to_kodi); // Init AddonHandler
+-    p = new StreamPlayer(portno);       // Init Player 
++    p = new StreamPlayer(portno, start_position);       // Init Player 
+ 
+     // Load the inputstream.adaptive Library and get the API Version
+     api_version = h->LoadAddon();
+diff --git a/src/streamplayer.cpp b/src/streamplayer.cpp
+index f7ae616..c5af762 100644
+--- a/src/streamplayer.cpp
++++ b/src/streamplayer.cpp
+@@ -149,8 +149,9 @@ void muxOutput(mpegts::SimpleBuffer &rTsOutBuffer, uint8_t tag){
+ }
+ 
+ 
+-StreamPlayer::StreamPlayer(int portnr) {  // if use_TCP is not set then portnr is the startposition
++StreamPlayer::StreamPlayer(int portnr, int start_position) {  // if use_TCP is not set then portnr is the startposition
+ 
++    startPosition = start_position;
+     if (!use_TCP)
+         startPosition = portnr;
+ 
+@@ -295,7 +296,7 @@ void StreamPlayer::StreamPlay(AddonHandler *h) {
+         h->GetStream(IDs.m_streamIds[VideoID]);  // Trigger start
+         h->GetStream(IDs.m_streamIds[AudioID]);
+ 
+-        if (!use_TCP)
++        if (startPosition > 0)
+             h->PosTime(startPosition * 1000);
+ 
+         mpegts::EsFrame esFrame;
+@@ -397,4 +398,3 @@ void StreamPlayer::StreamPlay(AddonHandler *h) {
+         while (demux );
+     }
+ }
+-
+diff --git a/src/streamplayer.h b/src/streamplayer.h
+index 137475b..65a875b 100644
+--- a/src/streamplayer.h
++++ b/src/streamplayer.h
+@@ -40,11 +40,10 @@ private:
+ 
+ public:
+ 
+-    StreamPlayer(int );
++    StreamPlayer(int, int);
+     ~StreamPlayer();
+     
+     void send_packet(uint8_t *,int);
+     void *Send_thread();
+     void StreamPlay(AddonHandler *);
+ };
+-

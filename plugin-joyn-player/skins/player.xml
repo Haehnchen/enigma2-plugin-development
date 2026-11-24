@@ -1,0 +1,51 @@
+<screen name="JoynPlayback" position="0,0" size="1280,720" resolution="1280,720"
+        flags="wfNoBorder" backgroundColor="transparent">
+    <widget name="panel" position="32,514" size="1216,184" cornerRadius="12"
+            backgroundColor="#0b1524" borderColor="#394b68" borderWidth="1" />
+    <widget name="accent" position="52,529" size="4,24" cornerRadius="2"
+            backgroundColor="#80b7ff" zPosition="1" />
+    <widget name="badge" position="63,529" size="92,24" font="Regular;17" halign="center" valign="center"
+            foregroundColor="#e5efff" backgroundColor="#253957" cornerRadius="5" zPosition="1" />
+    <widget name="context" position="171,527" size="900,28" font="Regular;22" valign="center"
+            foregroundColor="#c9dbf1" transparent="1" noWrap="1" zPosition="1" />
+    <widget name="logo" position="1125,526" size="100,40" alphatest="blend" zPosition="1" />
+    <widget name="title" position="52,556" size="1058,34" font="Regular;30" valign="center"
+            foregroundColor="#ffffff" transparent="1" noWrap="1" zPosition="1" />
+    <widget name="status" position="53,591" size="1173,24" font="Regular;19" valign="center"
+            foregroundColor="#bacce4" transparent="1" noWrap="1" zPosition="1" />
+
+    <widget name="time_left" position="53,616" size="175,22" font="Regular;18" valign="center"
+            foregroundColor="#f0f6ff" transparent="1" zPosition="1" />
+    <widget name="time_center" position="440,616" size="400,22" font="Regular;17" halign="center" valign="center"
+            foregroundColor="#bacce4" transparent="1" zPosition="1" />
+    <widget name="seek_caption" position="440,615" size="400,24" font="Regular;20" halign="center" valign="center"
+            foregroundColor="#ffd184" transparent="1" zPosition="2" />
+    <widget name="time_right" position="1050,616" size="176,22" font="Regular;18" halign="right" valign="center"
+            foregroundColor="#f0f6ff" transparent="1" zPosition="1" />
+    <widget name="progress" position="53,642" size="1173,6" orientation="orHorizontal"
+            foregroundColor="#80b7ff" backgroundColor="#2c3c54" zPosition="1" />
+    <widget name="seek_marker" position="53,639" size="4,12" cornerRadius="2"
+            backgroundColor="#ffd184" zPosition="2" />
+    <widget name="divider" position="53,658" size="1173,1" backgroundColor="#34435b" zPosition="1" />
+
+    <widget name="icon_ok" position="53,669" size="26,19" pixmap="buttons/key_ok.png"
+            scale="centerScaled" alphatest="blend" zPosition="1" />
+    <widget name="key_ok" position="85,666" size="99,24" font="Regular;17" valign="center"
+            foregroundColor="#f0f6ff" transparent="1" zPosition="1" />
+    <widget name="icon_left" position="193,669" size="24,19" pixmap="buttons/key_left.png"
+            scale="centerScaled" alphatest="blend" zPosition="1" />
+    <widget name="key_left" position="222,666" size="76,24" font="Regular;17" valign="center"
+            foregroundColor="#f0f6ff" transparent="1" zPosition="1" />
+    <widget name="icon_right" position="306,669" size="24,19" pixmap="buttons/key_right.png"
+            scale="centerScaled" alphatest="blend" zPosition="1" />
+    <widget name="key_right" position="335,666" size="76,24" font="Regular;17" valign="center"
+            foregroundColor="#f0f6ff" transparent="1" zPosition="1" />
+    <widget name="icon_yellow" position="420,669" size="24,19" pixmap="buttons/key_yellow.png"
+            scale="centerScaled" alphatest="blend" zPosition="1" />
+    <widget name="key_yellow" position="451,666" size="170,24" font="Regular;17" valign="center"
+            foregroundColor="#f0f6ff" transparent="1" zPosition="1" />
+    <widget name="icon_exit" position="1090,669" size="30,19" pixmap="buttons/key-exit.png"
+            scale="centerScaled" alphatest="blend" zPosition="1" />
+    <widget name="key_exit" position="1127,666" size="99,24" font="Regular;17" valign="center"
+            foregroundColor="#f0f6ff" transparent="1" zPosition="1" />
+</screen>

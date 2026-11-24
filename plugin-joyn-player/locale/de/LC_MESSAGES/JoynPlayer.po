@@ -1,0 +1,98 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: JoynPlayer\n"
+"Language: de\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Watch Joyn live TV and browse the catalog."
+msgstr "Joyn-Live-TV ansehen und den Katalog durchstöbern."
+
+msgid "Live TV"
+msgstr "Live-TV"
+
+msgid "Catalog"
+msgstr "Katalog"
+
+msgid "Search"
+msgstr "Suche"
+
+msgid "Refresh"
+msgstr "Aktualisieren"
+
+msgid "Loading…"
+msgstr "Wird geladen …"
+
+msgid "Opening stream…"
+msgstr "Stream wird geöffnet …"
+
+msgid "No content available."
+msgstr "Keine Inhalte verfügbar."
+
+msgid "Unsupported Joyn link."
+msgstr "Der Joyn-Link wird nicht unterstützt."
+
+msgid "Joyn runtime missing. Build or reinstall the Joyn package."
+msgstr "Joyn-Laufzeit fehlt. Das Joyn-Paket bauen oder neu installieren."
+
+msgid "Joyn could not be reached. Please try again."
+msgstr "Joyn ist gerade nicht erreichbar. Bitte erneut versuchen."
+
+msgid "Joyn could not complete the request."
+msgstr "Joyn konnte die Anfrage nicht abschließen."
+
+msgid "This Joyn dialog is unavailable."
+msgstr "Dieser Joyn-Dialog ist nicht verfügbar."
+
+msgid "Joyn did not return a playable stream."
+msgstr "Joyn hat keinen abspielbaren Stream geliefert."
+
+msgid "Joyn returned an unsupported DRM configuration."
+msgstr "Joyn hat eine nicht unterstützte DRM-Konfiguration geliefert."
+
+msgid "The ARM playback runtime is missing. Reinstall the Joyn package."
+msgstr "Die ARM-Wiedergabelaufzeit fehlt. Das Joyn-Paket neu installieren."
+
+msgid "Widevine setup failed. Check the internet connection and retry."
+msgstr "Widevine konnte nicht eingerichtet werden. Internetverbindung prüfen und erneut versuchen."
+
+msgid "Joyn did not deliver video. The Widevine license may have been rejected."
+msgstr "Joyn hat kein Video geliefert. Möglicherweise wurde die Widevine-Lizenz abgelehnt."
+
+msgid "The receiver could not start playback."
+msgstr "Der Receiver konnte die Wiedergabe nicht starten."
+
+msgid "The stream could not be started."
+msgstr "Der Stream konnte nicht gestartet werden."
+
+msgid "Info"
+msgstr "Info"
+
+msgid "Close"
+msgstr "Schließen"
+
+msgid "Video"
+msgstr "Video"
+
+msgid "Paused"
+msgstr "Pausiert"
+
+msgid "Pause"
+msgstr "Pause"
+
+msgid "Resume"
+msgstr "Fortsetzen"
+
+msgid "No programme information"
+msgstr "Keine Programminformation"
+
+msgid "Next  {time} · {title}"
+msgstr "Danach  {time} · {title}"
+
+msgid "{minutes} min left"
+msgstr "Noch {minutes} Min."
+
+msgid "Season {number}"
+msgstr "Staffel {number}"
+
+msgid "Episode {number}"
+msgstr "Folge {number}"

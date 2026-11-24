@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+plugin_dir=/usr/lib/enigma2/python/Plugins/Extensions
+test_plugin=$plugin_dir/JoynTest
+mkdir -p "$test_plugin"
+touch "$test_plugin/__init__.py"
+cp "$plugin_dir/JoynPlayer/tests/gui.py" "$test_plugin/plugin.py"
+
+log=$(mktemp)
+trap 'rm -f "$log"' EXIT
+status=0
+timeout --kill-after=5s 35s xvfb-run -a -s '-screen 0 1280x720x24 -nolisten tcp' enigma2 >"$log" 2>&1 || status=$?
+if ((status == 0)) && grep -F '[JoynTest] PASS:' "$log"; then
+    exit 0
+fi
+cat "$log" >&2
+exit "$((status == 0 ? 1 : status))"

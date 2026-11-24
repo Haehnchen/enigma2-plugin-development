@@ -1,0 +1,8 @@
+Package: enigma2-plugin-extensions-joynplayer
+Version: 0.1.0
+Architecture: cortexa15hf-neon-vfpv4
+Maintainer: Enigma2 plugin development contributors
+Section: multimedia
+Priority: optional
+Depends: enigma2, python3-core, libavformat63, libavcodec63, libavutil61, libcurl4, libgcc1, nspr
+Description: Joyn live TV and video catalog for ARM hard-float Enigma2 receivers.

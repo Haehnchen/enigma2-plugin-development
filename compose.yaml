@@ -12,6 +12,7 @@ services:
     ports:
       - "127.0.0.1:${UI_PORT:-6080}:6080"
     environment:
+      ENIGMA2_JOYN_PROFILE: /tmp/joyn-profile
       ENIGMA2_TWITCH_CONFIG: /var/lib/twitch-player
       ENIGMA2_CRYPTO_SETTINGS: /var/lib/crypto-market/watchlist.json
     volumes:
@@ -30,6 +31,12 @@ services:
       - type: bind
         source: ./plugin-twitch-player
         target: /usr/lib/enigma2/python/Plugins/Extensions/TwitchPlayer
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./plugin-joyn-player
+        target: /usr/lib/enigma2/python/Plugins/Extensions/JoynPlayer
         read_only: true
         bind:
           create_host_path: false

@@ -2,3 +2,5 @@
 /dist/
 __pycache__/
 *.py[cod]
+/plugin-joyn-player/.runtime/
+/plugin-joyn-player/.build/

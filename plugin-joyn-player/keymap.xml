@@ -1,0 +1,10 @@
+<keymap>
+    <map context="JoynSeekActions">
+        <key id="KEY_LEFT" mapto="seekLeft" flags="m" />
+        <key id="KEY_LEFT" mapto="repeatLeft" flags="r" />
+        <key id="KEY_LEFT" mapto="releaseLeft" flags="b" />
+        <key id="KEY_RIGHT" mapto="seekRight" flags="m" />
+        <key id="KEY_RIGHT" mapto="repeatRight" flags="r" />
+        <key id="KEY_RIGHT" mapto="releaseRight" flags="b" />
+    </map>
+</keymap>

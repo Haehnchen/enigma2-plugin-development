@@ -10,6 +10,7 @@ Each `plugin-*` directory contains one plugin's source code, assets, tests, and 
 | --- | --- |
 | [Crypto Market](plugin-crypto-market/README.md) | Crypto watchlist with prices and candlestick charts. |
 | [Twitch Player](plugin-twitch-player/README.md) | Twitch player with account linking and a live chat overlay. |
+| [Joyn Player](plugin-joyn-player/README.md) | Joyn live TV and video catalog with on-receiver playback. |
 | [Hello World](plugin-hello-world/README.md) | Opens a “Hello World!” dialog from the Extensions menu. |
 | [Standby XL](plugin-standby-xl/README.md) | Standby clock and date for 480 × 320 front displays. |
 

@@ -1,0 +1,15 @@
+<screen name="JoynBrowser" position="center,center" size="900,580" resolution="1280,720" flags="wfNoBorder" backgroundColor="#101b29">
+    <widget name="heading" position="22,14" size="856,48" font="Regular;31" foregroundColor="#ffffff" valign="center" transparent="1" />
+    <widget name="items" position="22,68" size="856,360" itemHeight="40" scrollbarMode="showOnDemand" enableWrapAround="1" transparent="1" />
+    <widget name="details" position="22,439" size="856,52" font="Regular;20" foregroundColor="#c1d1e4" transparent="1" />
+    <widget name="status" position="22,492" size="856,30" font="Regular;21" foregroundColor="#f0c67c" transparent="1" />
+    <eLabel position="0,525" size="900,55" backgroundColor="#192b3d" />
+    <eLabel position="26,546" size="14,14" backgroundColor="#ea607a" zPosition="1" />
+    <eLabel position="242,546" size="14,14" backgroundColor="#55d590" zPosition="1" />
+    <eLabel position="458,546" size="14,14" backgroundColor="#ffd06d" zPosition="1" />
+    <eLabel position="674,546" size="14,14" backgroundColor="#68afff" zPosition="1" />
+    <widget name="key_red" position="50,532" size="176,42" font="Regular;22" foregroundColor="#ffffff" valign="center" transparent="1" zPosition="2" />
+    <widget name="key_green" position="266,532" size="176,42" font="Regular;22" foregroundColor="#ffffff" valign="center" transparent="1" zPosition="2" />
+    <widget name="key_yellow" position="482,532" size="176,42" font="Regular;22" foregroundColor="#ffffff" valign="center" transparent="1" zPosition="2" />
+    <widget name="key_blue" position="698,532" size="176,42" font="Regular;22" foregroundColor="#ffffff" valign="center" transparent="1" zPosition="2" />
+</screen>
