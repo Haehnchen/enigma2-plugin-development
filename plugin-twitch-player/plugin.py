@@ -9,9 +9,9 @@ from enigma import eTimer
 from Plugins.Plugin import PluginDescriptor
 from Screens.Screen import Screen
 
+from .bouquet import TwitchBouquet
 from .channel_grid import ChannelCards
 from .i18n import _
-from .library import Library
 from .player import Player
 from .settings import Settings
 
@@ -29,7 +29,7 @@ class Browser(Screen):
         super().__init__(session)
         self.skinName = "TwitchChannels"
         self.owner = library is None
-        self.library = Library() if self.owner else library
+        self.library = session.twitch_bouquet.library if self.owner else library
         self.selected = selected
         self.live_names = []
         self.page_rows = []
@@ -79,7 +79,7 @@ class Browser(Screen):
     def stop(self):
         self.library.listeners.remove(self.render)
         if self.owner:
-            self.library.close()
+            self.library.leave()
 
     def render(self):
         """Keep the selected channel on screen when a refresh reorders the live list."""
@@ -174,7 +174,15 @@ def main(session, onClose=None, **kwargs):
     session.openWithCallback(browser_closed, Browser)
 
 
+def session_start(reason, session, **kwargs):
+    if reason == PluginDescriptor.REASON_START:
+        session.twitch_bouquet = TwitchBouquet(session)
+
+
 def Plugins(**kwargs):
-    return PluginDescriptor(name="Twitch Player", description=_("Twitch channels, live streams and chat"),
-                            icon="plugin.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=main,
-                            closeMode=PluginDescriptor.DO_CLOSE_RECURSIVE)
+    return [
+        PluginDescriptor(where=PluginDescriptor.WHERE_SESSIONSTART, fnc=session_start),
+        PluginDescriptor(name="Twitch Player", description=_("Twitch channels, live streams and chat"),
+                         icon="plugin.png", where=PluginDescriptor.WHERE_PLUGINMENU, fnc=main,
+                         closeMode=PluginDescriptor.DO_CLOSE_RECURSIVE),
+    ]

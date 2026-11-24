@@ -10,7 +10,7 @@ from twisted.internet.defer import Deferred, DeferredSemaphore, inlineCallbacks
 from twisted.internet.threads import deferToThread
 
 from .i18n import _
-from .twitch import Account, Channel, Preferences, download_preview, fetch_channels
+from .twitch import Account, Channel, Preferences, bouquet_sections, download_preview, fetch_channels
 
 
 class Previews:
@@ -116,7 +116,7 @@ def receiver_account(directory):
 
 
 class Library:
-    def __init__(self):
+    def __init__(self, publish):
         directory = Path(getenv("ENIGMA2_TWITCH_CONFIG") or resolveFilename(SCOPE_CONFIG, "twitch-player"))
         self.prefs = Preferences(directory)
         self.account = receiver_account(directory)
@@ -130,17 +130,27 @@ class Library:
         self.revision = 0
 
         self.listeners = []
+        self.publish = publish
+        self.foreground = 0
         self.timer = eTimer()
         self.timer.callback.append(self.refresh)
         self.generation = 0
         self.pending = False
         self.closed = False
 
-    def start(self, size, avatar_width):
-        self.size = size
-        self.avatar_width = avatar_width
+    def start(self, size=None, avatar_width=None):
+        if size is not None:
+            self.size = size
+            self.avatar_width = avatar_width
+        self.foreground += 1
         self.timer.start(90000)
         self.refresh()
+
+    def leave(self):
+        self.foreground -= 1
+        if not self.foreground:
+            self.timer.stop()
+            self.previews.show([])
 
     def close(self):
         self.closed = True
@@ -190,7 +200,10 @@ class Library:
 
         names = list(dict.fromkeys(custom + follows))
         try:
-            info = fetch_channels(names, size, self.avatar_width)
+            errors = []
+            info = fetch_channels(names, size, self.avatar_width, errors=errors)
+            if errors:
+                status = _("Channel details unavailable")
         except Exception:
             info = None
             status = _("Channel details unavailable")
@@ -215,6 +228,8 @@ class Library:
                 info = self.channels
 
             rows = [info.get(name, Channel(name)) for name in names]
-            rows.sort(key=lambda row: (not row.live, -(row.viewers or 0)))
-            self.channels = {row.login: row for row in rows}
+            online, offline = bouquet_sections(rows)
+            self.channels = {row.login: row for row in online + offline}
+            if not self.status:
+                self.publish(online, offline)
         self.notify()

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+driver=/usr/lib/enigma2/python/Plugins/Extensions/TwitchBouquetTest
+mkdir -p "$driver"
+touch "$driver/__init__.py"
+cp "$(dirname "$0")/bouquet-receiver.py" "$driver/plugin.py"
+
+log=$(mktemp)
+if timeout --kill-after=3s 40s xvfb-run -a -s '-screen 0 1280x720x24 -nolisten tcp' enigma2 >"$log" 2>&1 &&
+    grep -F '[TwitchBouquetTest] PASS' "$log"; then
+    exit 0
+fi
+tail -160 "$log" >&2
+exit 1

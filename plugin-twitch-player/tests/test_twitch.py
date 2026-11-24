@@ -45,6 +45,42 @@ class PreferencesTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             twitch.bouquet_reference("a/b")
 
+    def test_bouquet_opt_in_interval_and_ownership_survive_other_settings_changes(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory)
+            (path / "channels.json").write_text('{"channels":["old"]}')
+            prefs = twitch.Preferences(path)
+            self.assertEqual((prefs.bouquet_enabled, prefs.interval, prefs.standby_interval, prefs.bouquet_id),
+                             (False, 10, 60, ""))
+            prefs.save(prefs.channels, prefs.position, bouquet_enabled=True, interval=3, standby_interval=120)
+            owner = prefs.bouquet_id
+            prefs.cycle_chat_position()
+            prefs = twitch.Preferences(path)
+            self.assertEqual((prefs.bouquet_enabled, prefs.interval, prefs.standby_interval, prefs.bouquet_id),
+                             (True, 3, 120, owner))
+            prefs.save([], prefs.position, bouquet_enabled=False)
+            prefs.save(["new"], prefs.position, bouquet_enabled=True)
+            self.assertEqual(twitch.Preferences(path).bouquet_id, owner)
+
+    def test_bouquet_epg_identity_is_per_broadcaster_and_scheme_is_specific(self):
+        def ref(login, user_id):
+            return twitch.player_reference(twitch.Channel(login, user_id=user_id))
+
+        self.assertEqual(ref("alice", 0x12345678), "4097:0:1:5678:1234:7FAA:0:0:0:0:twitch-player%3a//alice")
+        self.assertEqual(ref("alice", 1).split(":")[:10], ref("renamed", 1).split(":")[:10])
+        self.assertNotEqual(ref("alice", 1).split(":")[:10], ref("bob", 0x100000001).split(":")[:10])
+        self.assertEqual(twitch.bouquet_login("twitch-player://ESLCS"), "eslcs")
+        for path in ("https://eslcs", "streamlink://https://www.twitch.tv/eslcs", "twitch-player://a/b"):
+            self.assertEqual(twitch.bouquet_login(path), "")
+
+    def test_bouquet_sections_use_viewers_for_live_channels_and_followers_for_offline_channels(self):
+        rows = [twitch.Channel("inactive"), twitch.Channel("small", followers=7),
+                twitch.Channel("just_started", viewers=0, followers=900),
+                twitch.Channel("big", followers=800), twitch.Channel("busy", viewers=300, followers=2)]
+        online, offline = twitch.bouquet_sections(rows)
+        self.assertEqual([row.login for row in online], ["busy", "just_started"])
+        self.assertEqual([row.login for row in offline], ["big", "small", "inactive"])
+
     def test_german_catalog_includes_device_login_and_chat(self):
         language = translation("TwitchPlayer", Path(twitch.__file__).parent / "locale", languages=["de"])
         self.assertEqual(language.gettext("Connect Twitch"), "Twitch verbinden")
@@ -128,13 +164,13 @@ class TwitchTests(unittest.TestCase):
     @patch.object(twitch, "request_json")
     def test_stream_metadata_batched_at_requested_size(self, request):
         request.side_effect = [{"data": {"users": [
-            {"login": "a0", "displayName": "A0", "avatar": "small", "profileImageURL": "large",
+            {"id": "100", "login": "a0", "displayName": "A0", "avatar": "small", "profileImageURL": "large",
              "followers": {"totalCount": 150_000},
              "stream": {"title": "Final", "viewersCount": 0, "createdAt": "2026-11-01T12:00:00Z",
              "game": {"name": "Chess", "boxArtURL": "portrait-{width}x{height}.jpg"}, "previewImageURL": "image"}},
-            {"login": "a1", "displayName": "A1", "stream": None, "profileImageURL": "avatar",
+            {"id": "101", "login": "a1", "displayName": "A1", "stream": None, "profileImageURL": "avatar",
              "followers": {"totalCount": 0}},
-            {"login": "a2", "displayName": "A2", "followers": None}, None]}},
+            {"id": "102", "login": "a2", "displayName": "A2", "followers": None}, None]}},
             {"data": {"users": []}}]
         rows = twitch.fetch_channels([f"a{i}" for i in range(101)], (432, 243), 30)
         self.assertTrue(rows["a0"].live)

@@ -13,6 +13,8 @@ from time import monotonic
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+from uuid import uuid4
+from zlib import crc32
 
 
 # Public application IDs used by twitch-player-2 for device login and public previews.
@@ -22,6 +24,10 @@ AUTH = "https://id.twitch.tv/oauth2/"
 SCOPE = "user:read:follows"
 DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code"
 LOGIN = re.compile(r"[a-z0-9_]{1,25}", re.ASCII)
+PLAYER_SCHEME = "twitch-player://"
+DEFAULT_INTERVAL = 10
+DEFAULT_STANDBY_INTERVAL = 60
+INTERVAL_LIMITS = (1, 1440)
 CHAT_POSITIONS = {
     "top-left": "Top left", "top-center": "Top center", "top-right": "Top right",
     "middle-right": "Middle right", "bottom-right": "Bottom right", "bottom-center": "Bottom center",
@@ -48,6 +54,32 @@ def channel_url(login):
 def bouquet_reference(login):
     """Encode the Twitch URL in the service-reference format used by StreamlinkWrapper."""
     return "4097:0:1:0:0:0:0:0:0:0:" + ("streamlink://" + channel_url(login)).replace(":", "%3a")
+
+
+def bouquet_login(path):
+    return channel_name(path[len(PLAYER_SCHEME):]) if path.startswith(PLAYER_SCHEME) else ""
+
+
+def player_reference(row):
+    """Keep the EPG triplet stable across refreshes, reordering and channel renames."""
+    user_id = row.user_id
+    if not 0 <= user_id < 1 << 48 or not channel_name(row.login):
+        raise ValueError("Invalid Twitch channel identity")
+    onid = 0x7faa ^ (user_id >> 32)
+    if not user_id:
+        # A saved login can refer to an account Twitch no longer returns.
+        user_id = crc32(row.login.encode("ascii"))
+        onid = 0xfffe
+    sid = user_id & 0xffff
+    tsid = (user_id >> 16) & 0xffff
+    return f"4097:0:1:{sid:X}:{tsid:X}:{onid:X}:0:0:0:0:twitch-player%3a//{row.login}"
+
+
+def bouquet_sections(channels):
+    online = sorted((row for row in channels if row.live), key=lambda row: row.viewers, reverse=True)
+    offline = sorted((row for row in channels if not row.live),
+                     key=lambda row: row.followers if row.followers is not None else -1, reverse=True)
+    return online, offline
 
 
 def stream_qualities(login):
@@ -92,6 +124,10 @@ def write_json(path, data):
         Path(temp).unlink(missing_ok=True)
 
 
+def interval_minutes(value, default):
+    return value if type(value) is int and INTERVAL_LIMITS[0] <= value <= INTERVAL_LIMITS[1] else default
+
+
 class Preferences:
     def __init__(self, directory):
         self.path = directory / "channels.json"
@@ -103,11 +139,25 @@ class Preferences:
 
         position = saved.get("chat_position")
         self.position = position if position in CHAT_CLOCKWISE else "top-left"
+        self.interval = interval_minutes(saved.get("bouquet_interval"), DEFAULT_INTERVAL)
+        self.standby_interval = interval_minutes(saved.get("bouquet_standby_interval"), DEFAULT_STANDBY_INTERVAL)
+        owner = saved.get("bouquet_id")
+        self.bouquet_id = owner if isinstance(owner, str) and re.fullmatch("[0-9a-f]{32}", owner) else ""
+        self.bouquet_enabled = bool(self.bouquet_id) and saved.get("bouquet_enabled") is True
 
-    def save(self, channels, position):
-        write_json(self.path, {"channels": channels, "chat_position": position})
+    def save(self, channels, position, *, interval=None, standby_interval=None, bouquet_enabled=None):
+        minutes = self.interval if interval is None else interval
+        standby = self.standby_interval if standby_interval is None else standby_interval
+        enabled = self.bouquet_enabled if bouquet_enabled is None else bouquet_enabled
+        owner = self.bouquet_id or (uuid4().hex if enabled else "")
+        write_json(self.path, {"channels": channels, "chat_position": position, "bouquet_interval": minutes,
+                               "bouquet_standby_interval": standby, "bouquet_enabled": enabled, "bouquet_id": owner})
         self.channels = list(channels)
         self.position = position
+        self.interval = minutes
+        self.standby_interval = standby
+        self.bouquet_enabled = enabled
+        self.bouquet_id = owner
 
     def cycle_chat_position(self):
         index = (CHAT_CLOCKWISE.index(self.position) + 1) % len(CHAT_CLOCKWISE)
@@ -282,6 +332,7 @@ class Channel:
     started_at: datetime | None = None
     cover: str = ""
     followers: int | None = None
+    user_id: int = 0
 
     @property
     def live(self):
@@ -306,13 +357,13 @@ class Channel:
         return "" if self.followers is None else format_count(self.followers, keep_decimal=True)
 
 
-def fetch_channels(names, size, avatar_width):
+def fetch_channels(names, size, avatar_width, *, errors=None):
     """Fetch channel metadata in batches with previews sized for the active skin."""
     width, height = size
     # Twitch accepts preset profile image sizes, independent of the receiver's OSD.
     avatar_size = next((n for n in (28, 50, 70) if n >= avatar_width), 150)
     query = (
-        "query($logins:[String!]!){users(logins:$logins){login displayName profileImageURL(width:150) "
+        "query($logins:[String!]!){users(logins:$logins){id login displayName profileImageURL(width:150) "
         f"avatar:profileImageURL(width:{avatar_size}) "
         "followers{totalCount} "
         "stream{title viewersCount createdAt game{name boxArtURL} "
@@ -329,6 +380,8 @@ def fetch_channels(names, size, avatar_width):
         users = (data.get("data") or {}).get("users")
         if not isinstance(users, list) or (data.get("errors") and not any(users)):
             raise TwitchError(200, "Twitch metadata unavailable")
+        if errors is not None:
+            errors.extend(data.get("errors") or [])
 
         for user in users:
             if not user:
@@ -337,6 +390,7 @@ def fetch_channels(names, size, avatar_width):
             game = stream.get("game") or {}
             login = user["login"].lower()
             result[login] = Channel(
+                user_id=int(user.get("id") or 0),
                 login=login, display=user["displayName"], title=stream.get("title", ""),
                 game=game.get("name", ""), viewers=stream.get("viewersCount"),
                 image=stream.get("previewImageURL") or "", avatar=user.get("avatar") or "",

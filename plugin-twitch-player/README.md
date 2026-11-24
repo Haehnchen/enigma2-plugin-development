@@ -22,10 +22,12 @@ To install a local build, copy the IPK to the receiver and run `opkg install /pa
 - Stream details on the receiver’s front display during playback.
 - Custom channels added by name.
 - Twitch account linking via device code to show followed channels.
+- Optional **Twitch Live** bouquet with EPG.
 - Video resolution selection during playback.
 - Chat overlay with Twitch emotes, colored usernames and eight screen positions.
 
 <p>
+  <a href="docs/bouquet.webp"><img src="docs/bouquet.webp" width="50%" alt="Twitch Live TV bouquet with Online and Offline groups and the selected stream’s EPG title"></a>
   <a href="docs/settings.webp"><img src="docs/settings.webp" width="30%" alt="Twitch settings with account status and chat position"></a>
 </p>
 

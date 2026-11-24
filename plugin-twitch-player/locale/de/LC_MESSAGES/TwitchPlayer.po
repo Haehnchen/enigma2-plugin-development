@@ -70,6 +70,33 @@ msgstr "Gefolgte Kanäle nicht verfügbar"
 msgid "{count} followers"
 msgstr "{count} Follower"
 
+msgid "{count} viewers"
+msgstr "{count} Zuschauer"
+
+msgid "Twitch Live TV bouquet"
+msgstr "TV-Bouquet „Twitch Live“"
+
+msgid "Group your channels by online status and show live streams in the EPG."
+msgstr "Kanäle nach Online-Status gruppieren und laufende Streams im EPG anzeigen."
+
+msgid "Online"
+msgstr "Online"
+
+msgid "Offline"
+msgstr "Offline"
+
+msgid "Bouquet update interval (minutes)"
+msgstr "Bouquet-Aktualisierung (Minuten)"
+
+msgid "Enter the time between updates in minutes (1–1440)."
+msgstr "Zeit zwischen den Aktualisierungen in Minuten eingeben (1–1440)."
+
+msgid "Bouquet update in standby (minutes)"
+msgstr "Bouquet-Aktualisierung im Standby (Minuten)"
+
+msgid "Enter the time between updates while the receiver is in standby (1–1440)."
+msgstr "Zeit zwischen den Aktualisierungen im Standby in Minuten eingeben (1–1440)."
+
 msgid "Info"
 msgstr "Info"
 

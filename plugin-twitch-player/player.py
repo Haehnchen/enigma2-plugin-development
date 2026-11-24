@@ -17,7 +17,7 @@ from .chat_view import ChatView, StreamTitle
 from .i18n import _
 from .lcd_title import LcdTitle
 from .quality import StreamQuality
-from .twitch import bouquet_reference, format_count
+from .twitch import bouquet_login, bouquet_reference, format_count, player_reference
 
 
 class TwitchPlaybackSummary(Screen):
@@ -60,12 +60,13 @@ class Player(Screen):
             "key_ok", "key_green", "key_yellow", "key_red", "key_exit")
     CHAT = ("chat_bg", "chat_name", "chat_position_icon", "chat_position_key", "chat_text")
 
-    def __init__(self, session, library, row):
+    def __init__(self, session, library, row, bouquet_ref=None, previous=None):
         super().__init__(session)
         self.skinName = "TwitchPlayback"
         self.library = library
         self.row = row
-        self.previous = session.nav.getCurrentlyPlayingServiceOrGroup()
+        self.bouquet_ref = bouquet_ref
+        self.previous = previous if bouquet_ref is not None else session.nav.getCurrentlyPlayingServiceOrGroup()
         self.ref = None
         self.quality = None
         self.request = 0
@@ -154,7 +155,7 @@ class Player(Screen):
         if wrapper is None:
             self.failed(request, _("Install the StreamlinkWrapper plugin to play streams."))
             return
-        # Only the bouquet lookup runs in the worker. Navigation belongs to the GUI thread.
+        # Only the Streamlink lookup runs in the worker. Navigation belongs to the GUI thread.
         service = eServiceReference(bouquet_reference(row.login))
         service.setName(row.display or row.login)
         deferToThread(wrapper, service=service).addCallbacks(
@@ -170,11 +171,19 @@ class Player(Screen):
             self.failed(request, _("No playable stream. The channel may be offline."))
             return
 
-        ref = eServiceReference(4097, 0, url)
-        ref.setData(0, 1)
-        ref.setName(row.display or row.login)
         nav = self.session.nav
         previous = nav.getCurrentlyPlayingServiceOrGroup()
+        if self.bouquet_ref is not None:
+            if previous is None or (previous != self.bouquet_ref and previous != self.ref):
+                return  # The receiver changed channels while Streamlink was resolving this request.
+            logical = (self.bouquet_ref.toString() if bouquet_login(self.bouquet_ref.getPath()) == row.login
+                       else player_reference(row))
+            ref = eServiceReference(logical)
+            ref.setAlternativeUrl(url)
+        else:
+            ref = eServiceReference(4097, 0, url)
+            ref.setData(0, 1)
+        ref.setName(row.display or row.login)
         failed = nav.playService(ref, forceRestart=previous is not None and ref == previous)
         current = nav.getCurrentlyPlayingServiceOrGroup()
         if failed or not current:
@@ -347,7 +356,7 @@ class Player(Screen):
             self.stop_chat()
 
         current = self.session.nav.getCurrentlyPlayingServiceOrGroup()
-        if current is None or (self.ref is not None and current == self.ref):
+        if current is None or current == self.ref or current == self.bouquet_ref:
             self.session.nav.stopService()
             if self.previous:
                 self.session.nav.playService(self.previous)

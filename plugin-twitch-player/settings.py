@@ -3,7 +3,7 @@ from time import monotonic
 
 from Components.ActionMap import ActionMap
 from Components.ConfigList import ConfigListScreen
-from Components.config import ConfigElement, ConfigSelection, getConfigListEntry
+from Components.config import ConfigElement, ConfigInteger, ConfigSelection, ConfigYesNo, getConfigListEntry
 from Components.Label import Label
 from Components.MenuList import MenuList
 from Components.Sources.StaticText import StaticText
@@ -15,7 +15,7 @@ from Screens.VirtualKeyBoard import VirtualKeyboard
 from twisted.internet.threads import deferToThread
 
 from .i18n import _
-from .twitch import CHAT_POSITIONS, channel_name, device_code, device_token
+from .twitch import CHAT_POSITIONS, INTERVAL_LIMITS, channel_name, device_code, device_token
 
 
 class DeviceLogin(Screen):
@@ -149,6 +149,7 @@ class CustomChannels(Screen):
 
 class Settings(Screen, ConfigListScreen):
     skin = Setup.skin
+    createSummary = ConfigListScreen.createSummary
 
     def __init__(self, session, library):
         Screen.__init__(self, session, mandatoryWidgets=["config", "description", "footnote"], enableHelp=True)
@@ -161,14 +162,23 @@ class Settings(Screen, ConfigListScreen):
         self.channel_count = ConfigElement()
         self.position = ConfigSelection([(key, _(label)) for key, label in CHAT_POSITIONS.items()],
                                         default=library.prefs.position)
+        self.bouquet = ConfigYesNo(default=library.prefs.bouquet_enabled)
+        self.interval = ConfigInteger(default=library.prefs.interval, limits=INTERVAL_LIMITS)
+        self.standby_interval = ConfigInteger(default=library.prefs.standby_interval, limits=INTERVAL_LIMITS)
         self.account_entry = getConfigListEntry(_("Twitch account"), self.account,
                                                _("Press OK to manage your Twitch connection."))
         self.channels_entry = getConfigListEntry(_("Custom channels"), self.channel_count,
                                                 _("Press OK to add or remove channels."))
         position_entry = getConfigListEntry(_("Chat position"), self.position,
                                             _("Use Left/Right to move the chat."))
+        bouquet_entry = getConfigListEntry(_("Twitch Live TV bouquet"), self.bouquet,
+                                           _("Group your channels by online status and show live streams in the EPG."))
+        interval_entry = getConfigListEntry(_("Bouquet update interval (minutes)"), self.interval,
+                                            _("Enter the time between updates in minutes (1–1440)."))
+        standby_entry = getConfigListEntry(_("Bouquet update in standby (minutes)"), self.standby_interval,
+                                           _("Enter the time between updates while the receiver is in standby (1–1440)."))
         ConfigListScreen.__init__(
-            self, [self.account_entry, self.channels_entry, position_entry],
+            self, [self.account_entry, self.channels_entry, position_entry, bouquet_entry, interval_entry, standby_entry],
             session=session, on_change=self.position_changed,
         )
 
@@ -176,7 +186,7 @@ class Settings(Screen, ConfigListScreen):
         self["footnote"] = Label()
         self["key_red"] = StaticText(_("Back"))
         self["settingsActions"] = ActionMap(["OkCancelActions", "ColorActions"],
-                                           {"cancel": self.close, "red": self.close}, -1)
+                                           {"cancel": self.done, "red": self.done}, -1)
 
         self["config"].onSelectionChanged.append(self.show_description)
         self.library.listeners.append(self.update)
@@ -205,6 +215,21 @@ class Settings(Screen, ConfigListScreen):
             self.account_action()
         elif item is self.channel_count:
             self.session.open(CustomChannels, self.library)
+        else:
+            super().keySelect()
+
+    def done(self):
+        prefs = self.library.prefs
+        if (self.bouquet.value, self.interval.value, self.standby_interval.value) != (
+                prefs.bouquet_enabled, prefs.interval, prefs.standby_interval):
+            try:
+                prefs.save(prefs.channels, prefs.position, bouquet_enabled=self.bouquet.value,
+                           interval=self.interval.value, standby_interval=self.standby_interval.value)
+            except OSError:
+                self.message(_("Could not save Twitch settings."))
+                return
+            self.session.twitch_bouquet.configure()
+        self.close()
 
     def position_changed(self):
         prefs = self.library.prefs
