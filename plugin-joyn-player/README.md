@@ -29,6 +29,7 @@ To install a local build, copy the IPK to the receiver and run `opkg install /pa
 - The Enigma2 plugin uses the upstream Joyn Kodi add-on through a small [Python adapter](backend/joyn.py) to browse the catalog and resolve live and on-demand streams.
 - For protected DASH streams, `dash2ts` loads Kodi's InputStream Adaptive and the ARM Widevine CDM. The plugin downloads and verifies Widevine on first use. Playback runs on the receiver, where a local HTTP relay feeds the MPEG transport stream to Enigma2's 4097 player.
 - The [dash2ts seek patch](tools/0001-add-start-position.patch) enables seeking in on-demand videos by passing the target playback position to the helper.
+- Live TV uses adaptive quality. On-demand videos use the highest playable rendition for the output resolution. The [transport stream patch](tools/0002-fix-stream-selection-and-timestamps.patch) supplies the receiver with presentation timestamps, decode timestamps and a running MPEG-TS clock.
 
 ## Build from source
 

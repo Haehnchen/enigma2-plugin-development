@@ -15,7 +15,7 @@ test-gui: .build/gui-test.ts
 	ffmpeg -hide_banner -loglevel error -f lavfi -i testsrc2=size=320x180:rate=25 -f lavfi -i sine=frequency=440 -t 10 -c:v libx264 -threads 2 -c:a aac -f mpegts $@
 
 runtime: .runtime/.ready
-.runtime/.ready: tools/prepare-runtime.py tools/runtime-lock.json tools/cross-build.sh tools/0001-add-start-position.patch
+.runtime/.ready: tools/prepare-runtime.py tools/runtime-lock.json tools/cross-build.sh $(wildcard tools/*.patch)
 	$(PYTHON) tools/prepare-runtime.py
 	touch $@
 catalog:

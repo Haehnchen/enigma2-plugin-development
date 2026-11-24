@@ -86,7 +86,7 @@ class PlaybackTests(unittest.TestCase):
             binary.write_text(f"""#!{sys.executable}
 import socket, sys, time
 port = int(sys.argv[sys.argv.index('-p') + 1])
-assert sys.argv[sys.argv.index('-s') + 1] == '32'
+assert '-f' in sys.argv and sys.argv[sys.argv.index('-s') + 1] == '32'
 with socket.create_connection(('127.0.0.1', port)) as out:
     out.sendall((bytes([0x47]) + bytes(187)) * 3)
     time.sleep(12)
@@ -94,7 +94,7 @@ with socket.create_connection(('127.0.0.1', port)) as out:
             binary.chmod(stat.S_IRWXU)
             stream = {"url": "https://stream.example/manifest.mpd", "drm": "com.widevine.alpha",
                       "properties": {"inputstream.adaptive.license_key": "https://license.example"}}
-            relay = playback.Transport(stream, position=32)
+            relay = playback.Transport(stream, position=32, on_demand=True)
             with patch.object(playback, "RUNTIME", runtime), patch.object(playback, "ensure_widevine", return_value=cdm):
                 try:
                     url = relay.open()

@@ -57,8 +57,8 @@ def unpack_ipk(package, root):
 
 
 def build_helper(source, sysroot, build):
-    subprocess.run(["patch", "-p1", "-i", HERE / "0001-add-start-position.patch"],
-                   cwd=source, check=True)
+    for patch in sorted(HERE.glob("*.patch")):
+        subprocess.run(["patch", "-p1", "-i", patch], cwd=source, check=True)
     sh = HERE / "cross-build.sh"
     args = [source, sysroot]
     if os.getenv("JOYN_CROSS_ROOT") or which("arm-linux-gnueabihf-g++"):

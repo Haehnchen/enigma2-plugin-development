@@ -1,0 +1,329 @@
+diff --git a/src/addonhandler.cpp b/src/addonhandler.cpp
+index 59d8ab6..2623a53 100644
+--- a/src/addonhandler.cpp
++++ b/src/addonhandler.cpp
+@@ -44,12 +44,6 @@ AdjustRefreshRateStatus get_adjust_refresh_rate_status(KODI_HANDLE kodiBase) {
+ 
+ 
+ struct INPUTSTREAM_IDS IDs;
+-struct {
+-    int ID;
+-    int type;
+-    char *codecName;
+-} ID_type[INPUTSTREAM_MAX_STREAM_COUNT];
+-int max_ID_type=0;
+ bool running = false;
+ 
+ INPUTSTREAM_INFO stream{};
+@@ -74,12 +68,6 @@ KODI_HANDLE cb_get_stream_transfer(KODI_HANDLE handle,
+     std::string codecName(stream->m_codecName);
+     const AVCodec* codec = nullptr;
+ 
+-    ID_type[max_ID_type].codecName = strdup(stream->m_codecName);
+-    ID_type[max_ID_type].ID = streamId;
+-    ID_type[max_ID_type].type = stream->m_streamType;
+-    max_ID_type++;
+-    
+-    
+     if (!running)
+         return nullptr;
+ 
+@@ -107,15 +95,23 @@ KODI_HANDLE cb_get_stream_transfer(KODI_HANDLE handle,
+ }
+ 
+     void AddonHandler::SelectStreams(int *videoid, int*audioid) {
+-        for (int i=0;i< max_ID_type;i++) {
+-            if (ID_type[i].type == 1) {
++        unsigned int bestHeight = 0, bestBitrate = 0;
++        for (unsigned int i = 0; i < IDs.m_streamCount; ++i) {
++            auto *info = static_cast<INPUTSTREAM_INFO *>(GetStream(IDs.m_streamIds[i]));
++            if (!info)
++                continue;
++            // The TS muxer emits H.264 video. ISA stream IDs have no quality ordering.
++            if (info->m_streamType == INPUTSTREAM_TYPE_VIDEO && !strcmp(info->m_codecName, "h264") &&
++                (*videoid < 0 || info->m_Height > bestHeight ||
++                 (info->m_Height == bestHeight && info->m_BitRate >= bestBitrate))) {
+                 *videoid = i;
++                bestHeight = info->m_Height;
++                bestBitrate = info->m_BitRate;
+             }
+-            if (ID_type[i].type == 2 && *audioid == -1 && strcmp("eac3",ID_type[i].codecName)) {
++            if (info->m_streamType == INPUTSTREAM_TYPE_AUDIO && *audioid < 0 &&
++                strcmp(info->m_codecName, "eac3"))
+                 *audioid = i;
+-            }
+         }
+-        return;
+     }
+ 
+ std::string path;
+@@ -260,13 +256,13 @@ std::string path;
+         return api_version;
+     }
+ 
+-    bool AddonHandler::OpenURL(char *url) {
++    bool AddonHandler::OpenURL(char *url, bool fixedResolution) {
+ 
+         // Prepare settings from xml File
+         std::string xmlfile = path +"/addons/inputstream.adaptive/resources/settings.xml";
+         std::string addonpath = path +"/addons/inputstream.adaptive";
+         LoadXML(xmlfile);
+-        AddProp("inputstream.adaptive.stream_selection_type","adaptive");
++        AddProp("inputstream.adaptive.stream_selection_type", fixedResolution ? "fixed-res" : "adaptive");
+         AddProp("inputstream.adaptive.manifest_type","mpd");
+         //AddProp("inputstream.adaptive.license_flags","force_secure_decoder");
+         
+@@ -293,7 +289,6 @@ std::string path;
+     }
+ 
+     bool AddonHandler::GetStreamIDs() {   
+-        max_ID_type=0;  // Reset ID Mapping 
+         if (kodi.inputstream->toAddon->get_stream_ids(kodi.inputstream,&IDs))
+             return true;
+         return false;
+@@ -448,15 +443,6 @@ std::string path;
+         return kodi.inputstream->toAddon->read_stream(kodi.inputstream, buf, buf_size);
+     }
+ 
+-    int AddonHandler::GetType(int ID)
+-    {
+-        for (int i=0;i<max_ID_type;i++) {
+-            if (ID_type[i].ID == ID)
+-                return ID_type[i].type;
+-        }
+-        return -1;
+-    }
+-
+     int AddonHandler::GetTotalTime(int streamID, bool enable) {  // Time in Milliseconds
+         return kodi.inputstream->toAddon->get_total_time(kodi.inputstream); 
+     }
+diff --git a/src/addonhandler.h b/src/addonhandler.h
+index 2122ce5..50036f4 100644
+--- a/src/addonhandler.h
++++ b/src/addonhandler.h
+@@ -39,7 +39,7 @@ public:
+     ~AddonHandler();
+ 
+     int LoadAddon();
+-    bool OpenURL(char *);
++    bool OpenURL(char *, bool fixedResolution);
+     void SetResolution(unsigned int ,unsigned int );
+     bool GetStreamIDs();
+     void EnableStream(int, bool );
+@@ -50,7 +50,6 @@ public:
+     void* GetStream(int streamId) const;
+     struct DEMUX_PACKET* DemuxRead();
+     int Read(uint8_t* , int );
+-    int GetType(int );
+     static char * get_user_path(void *);
+     bool AddProp(const char *, const char *);
+     bool AddSettingString(void *, char *, const char * );
+diff --git a/src/dash2ts.cpp b/src/dash2ts.cpp
+index 4db7d72..4f0d942 100644
+--- a/src/dash2ts.cpp
++++ b/src/dash2ts.cpp
+@@ -20,6 +20,7 @@ void usage() {
+     printf("dash2ts Version %s\n",VERSION);
+     printf("Usage: dash2ts -u url_to_manifest.mpd\n");
+     printf("               -p portnr\n");
++    printf("              [-f (prefer highest available resolution)]\n");
+     printf("              [-s start_seconds]\n");
+     printf("              [-k path_to_kodi]\n");
+     printf("              [-h http_headers]\n");
+@@ -67,6 +68,7 @@ main(int argc, char *argv[])
+     int api_version = 0;
+     int portno;
+     int start_position = 0;
++    bool fixedResolution = false;
+     
+     std::string orf_widevine_url ="https://drm.ors.at/acquire-license/widevine?BrandGuid=13f2e056-53fe-4469-ba6d-999970dbe549&userToken=";
+     std::string cenc = "com.widevine.alpha";
+@@ -75,7 +77,7 @@ main(int argc, char *argv[])
+     
+     printf("-------Start---------\n");
+     int c;
+-    while ((c = getopt (argc, argv, "u:p:k:d:w:h:s:v")) != -1) {
++    while ((c = getopt (argc, argv, "u:p:k:d:w:h:s:fv")) != -1) {
+         switch (c) {
+             case 'u': // URL to Manifest
+                 url = optarg;
+@@ -100,6 +102,9 @@ main(int argc, char *argv[])
+                 headers.clear();
+                 headers.append(optarg);
+                 continue;
++            case 'f':
++                fixedResolution = true;
++                continue;
+             case 's': // Start position in seconds
+                 start_position = atoi(optarg);
+                 continue;
+@@ -163,7 +168,7 @@ main(int argc, char *argv[])
+     h->SetResolution(1920,1080);
+ 
+     // Finaly open the URL 
+-    bool ret = h->OpenURL(url);
++    bool ret = h->OpenURL(url, fixedResolution);
+ 
+     if (ret) {
+         p->StreamPlay(h);  // Get Stream and send it to TCP Port
+diff --git a/src/streamplayer.cpp b/src/streamplayer.cpp
+index c5af762..de9d1cf 100644
+--- a/src/streamplayer.cpp
++++ b/src/streamplayer.cpp
+@@ -1,4 +1,6 @@
+ #include <stdio.h>
++#include <cmath>
++#include <cerrno>
+ #include <stdlib.h>
+ #include <string>
+ #include <iostream>
+@@ -93,18 +95,14 @@ typedef struct {
+ void sendpacket(uint8_t *p,int size) {
+     int n = 0;
+     if (use_TCP) {
+-        do {
+-            ssize_t r = write(sockfd,p,size);
+-            //if (r != size) printf("sendpacket only %d\n",r);
+-            if (r < 0) {
+-                usleep(10);
+-                //printf("failure write %d\n",r);
+-            }
+-            else {
+-                n += r;
+-            }
+-            
+-        } while (n < size);
++        while (n < size) {
++            ssize_t sent = write(sockfd, p + n, size - n);
++            if (sent < 0 && errno == EINTR)
++                continue;
++            if (sent <= 0)
++                exit(EXIT_FAILURE);
++            n += sent;
++        }
+     } else {
+         if (saveonly) {
+             FILE* f = fopen("stream_debug.ts", "a");
+@@ -269,6 +267,24 @@ void * StreamPlayer::Send_thread() {
+ }
+ #endif
+ 
++// Kodi timestamps are microseconds; PES and the PCR base use 90 kHz ticks.
++static void setTimestamps(mpegts::EsFrame &frame, const DEMUX_PACKET &packet, double &nextDts) {
++    auto valid = [](double ts) {
++        return std::isfinite(ts) && ts != static_cast<double>(AV_NOPTS_VALUE) &&
++               ts != static_cast<double>(static_cast<int64_t>(STREAM_NOPTS_VALUE));
++    };
++    double dts = valid(packet.dts) ? packet.dts : valid(packet.pts) ? packet.pts : nextDts;
++    double pts = valid(packet.pts) ? packet.pts : dts;
++    nextDts = dts + (packet.duration > 0 ? packet.duration : 0);
++
++    constexpr uint64_t mask = (uint64_t{1} << 33) - 1;
++    constexpr int64_t decoderLead = 9000;  // 100 ms between PCR and decoding.
++    int64_t decodeTicks = std::llround(dts * 90000.0 / STREAM_TIME_BASE);
++    frame.mPcr = decodeTicks & mask;
++    frame.mDts = (decodeTicks + decoderLead) & mask;
++    frame.mPts = (std::llround(pts * 90000.0 / STREAM_TIME_BASE) + decoderLead) & mask;
++}
++
+ void StreamPlayer::StreamPlay(AddonHandler *h) {
+     int VideoID=-1,AudioID=-1;
+     
+@@ -280,13 +296,10 @@ void StreamPlayer::StreamPlay(AddonHandler *h) {
+     if (h->GetStreamIDs()) {
+         BitstreamConverterInit();
+         if (verbose) fprintf(stderr,"Streamcount %d\n",IDs.m_streamCount);
+-        for (int i=0;i<IDs.m_streamCount;i++) {
+-            if (verbose) fprintf(stderr,"No. ID%d %d\n",i,IDs.m_streamIds[i]);
+-            h->GetStream(IDs.m_streamIds[i]);   // Build ID Table:
+-        }
+-        if (verbose) fprintf(stderr,"\n\n");
+-        h->SelectStreams(&VideoID,&AudioID);
+-        
++        h->SelectStreams(&VideoID, &AudioID);
++        if (VideoID < 0 || AudioID < 0)
++            return;
++
+         h->EnableStream(IDs.m_streamIds[VideoID],true);  // Enable Video Stream
+         h->OpenStream(IDs.m_streamIds[VideoID]);
+ 
+@@ -300,6 +313,7 @@ void StreamPlayer::StreamPlay(AddonHandler *h) {
+             h->PosTime(startPosition * 1000);
+ 
+         mpegts::EsFrame esFrame;
++        double nextVideoDts = 0, nextAudioDts = 0;
+         
+         do {
+             
+@@ -313,11 +327,11 @@ void StreamPlayer::StreamPlay(AddonHandler *h) {
+                     if (verbose) fprintf(stderr,"STREAMCHANGE DETECTED Size \n");
+                     
+                     CBitstreamConverterClose();
+-                    h->OpenStream(IDs.m_streamIds[ID]);
+-                    h->GetStream(IDs.m_streamIds[ID]);
++                    h->OpenStream(IDs.m_streamIds[VideoID]);
++                    h->GetStream(IDs.m_streamIds[VideoID]);
+                    
+                 }
+-                else if (h->GetType(demux->iStreamId) == INPUTSTREAM_TYPE_VIDEO) {
++                else if (demux->iStreamId == IDs.m_streamIds[VideoID]) {
+                     videoseen = true;
+                     if (audioseen || m_to_annexb == false) {
+                         //mpegts::EsFrame esFrame;
+@@ -339,13 +353,7 @@ void StreamPlayer::StreamPlay(AddonHandler *h) {
+                             esFrame.mData->append((const uint8_t *) demux->pData,demux->iSize);
+                         }
+                         
+-                        duration = demux->duration / 1000;
+-                        esFrame.mPts = demux->pts/demux->duration;
+-                        esFrame.mDts = demux->dts/demux->duration;
+-                        esFrame.mPts *= 90*(demux->duration/1000);
+-                        esFrame.mDts *= 90*(demux->duration/1000);
+-                        
+-                        esFrame.mPcr = 0;
++                        setTimestamps(esFrame, *demux, nextVideoDts);
+                         esFrame.mStreamType = TYPE_VIDEO;
+                         esFrame.mStreamId = 224;
+                         esFrame.mPid = VIDEO_PID;
+@@ -362,7 +370,7 @@ void StreamPlayer::StreamPlay(AddonHandler *h) {
+                         makepmt = false;
+                     }
+                 }
+-                else if (h->GetType(demux->iStreamId) == INPUTSTREAM_TYPE_AUDIO) {
++                else if (demux->iStreamId == IDs.m_streamIds[AudioID]) {
+                     audioseen = true;
+                     //if (videoseen) {
+                         ConvertToADTS((const uint8_t*) demux->pData, (size_t) demux->iSize, ADTS_Header);
+@@ -374,12 +382,7 @@ void StreamPlayer::StreamPlay(AddonHandler *h) {
+                         
+                         esFrame.mData->append((const uint8_t *) ADTS_Header,7);
+                         esFrame.mData->append((const uint8_t *) demux->pData, demux->iSize);
+-                        esFrame.mPts = demux->pts/demux->duration;
+-                        esFrame.mDts = demux->dts/demux->duration;
+-                        esFrame.mPts *= 90*(demux->duration/1000);
+-                        esFrame.mDts *= 90*(demux->duration/1000);
+-                        //printf("apts %f %f Duration %f\n",demux->pts,demux->dts,demux->duration);
+-                        esFrame.mPcr = 0;
++                        setTimestamps(esFrame, *demux, nextAudioDts);
+                         esFrame.mStreamType = TYPE_AUDIO;
+                         esFrame.mStreamId = 192;
+                         esFrame.mPid = AUDIO_PID;
+diff --git a/src/streamplayer.h b/src/streamplayer.h
+index 65a875b..ab1d570 100644
+--- a/src/streamplayer.h
++++ b/src/streamplayer.h
+@@ -21,14 +21,12 @@ private:
+     bool audioseen = false;
+     bool videoseen = false;
+     bool firstvideo = true;
+-    int ID = 0;
+     struct DEMUX_PACKET* demux;
+     unsigned char ADTS_Header[7];
+     bool makepmt = true;
+     mpegts::MpegTsMuxer *lMuxer;
+ 
+     
+-    int duration;  // Duration of one Frame in ms
+     int startPosition;
+ 
+     struct {

@@ -113,8 +113,9 @@ class RelayHandler(BaseHTTPRequestHandler):
 class Transport:
     """Own one dash2ts child and its single-client loopback HTTP stream."""
 
-    def __init__(self, stream, position=0):
+    def __init__(self, stream, position=0, *, on_demand=False):
         self.stream = stream
+        self.on_demand = on_demand
         self.position = position
         self.closed = Event()
         self.client = Lock()
@@ -160,6 +161,8 @@ class Transport:
                 headers = properties.get("inputstream.adaptive.stream_headers")
                 if headers:
                     command.extend(["-h", headers])
+                if self.on_demand:
+                    command.append("-f")
                 if self.position:
                     command.extend(["-s", str(self.position)])
                 with self.resources:

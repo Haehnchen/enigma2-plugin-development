@@ -105,7 +105,7 @@ class Player(Screen):
         self.paused = False
         self.overlay(_("Opening stream…"))
         self.hide_timer.stop()
-        transport = Transport(self.stream, position)
+        transport = Transport(self.stream, position, on_demand=not self.item.live)
         self.transport = transport
 
         def ready(url):
