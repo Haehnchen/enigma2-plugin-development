@@ -4,7 +4,19 @@ Watch Joyn's live TV channels and browse its on-demand catalog of shows, episode
 
 ## Installation
 
-Copy the IPK to a compatible ARM hard-float receiver with the FFmpeg 9 libraries and run `opkg install /path/to/package.ipk`. Restart the Enigma2 GUI, then open **Extensions → Joyn**.
+Run this command in a terminal on the receiver to install or update the plugin.
+
+```sh
+opkg install https://github.com/Haehnchen/enigma2-plugin-development/releases/latest/download/enigma2-plugin-extensions-joynplayer.ipk
+```
+
+To install a local build, copy the IPK to the receiver and run `opkg install /path/to/package.ipk`. Restart the Enigma2 GUI, then open **Extensions → Joyn**.
+
+## Features
+
+- Live streaming of Joyn TV channels.
+- On-demand playback of episodes and films from the Joyn catalog.
+- Search for shows and films by title and play episodes or films from the results.
 
 ## Controls
 

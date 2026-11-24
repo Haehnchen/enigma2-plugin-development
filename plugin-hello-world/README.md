@@ -1,6 +1,20 @@
 # Hello World
 
-Open **Extensions → Hello World**. The entry has a pink terminal icon. Press `Enter` to show “Hello World!” and `Esc` to return to the plugin list.
+Hello World is an example Enigma2 plugin that displays a “Hello World!” dialog.
+
+## Installation
+
+Open a terminal on the receiver and run this command to install or update Hello World.
+
+```sh
+opkg install https://github.com/Haehnchen/enigma2-plugin-development/releases/latest/download/enigma2-plugin-extensions-helloworld.ipk
+```
+
+To install a local build, copy the IPK to the receiver and run `opkg install /path/to/package.ipk`. Restart the Enigma2 GUI, then open **Extensions → Hello World**.
+
+## Controls
+
+Select the entry with the pink terminal icon. Press `Enter` to show “Hello World!” and `Esc` to return to the plugin list.
 
 ## Tests
 
