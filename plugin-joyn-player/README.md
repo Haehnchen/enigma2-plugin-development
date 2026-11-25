@@ -4,8 +4,6 @@ Watch Joyn's live TV channels and browse its on-demand catalog of shows, episode
 
 ## Installation
 
-Run this command in a terminal on the receiver to install or update the plugin.
-
 ```sh
 opkg install https://github.com/Haehnchen/enigma2-plugin-development/releases/latest/download/enigma2-plugin-extensions-joynplayer.ipk
 ```

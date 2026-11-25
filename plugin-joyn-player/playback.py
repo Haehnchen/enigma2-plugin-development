@@ -78,9 +78,14 @@ class RelayHandler(BaseHTTPRequestHandler):
             self.send_error(404)
             return False
         # dash2ts produces one sequential stream. HEAD probes do not claim it.
-        if self.command == "GET" and not relay.client.acquire(blocking=False):
-            self.send_error(409)
-            return False
+        if self.command == "GET":
+            with relay.resources:
+                available = relay.client is None and not relay.closed.is_set()
+                if available:
+                    relay.client = self.connection
+            if not available:
+                self.send_error(409)
+                return False
 
         self.send_response(200)
         self.send_header("Content-Type", "video/mp2t")
@@ -96,7 +101,8 @@ class RelayHandler(BaseHTTPRequestHandler):
         try:
             if not self.send_stream_headers():
                 return
-            self.connection.settimeout(5)
+            # The decoder may stop reading while paused or while its buffer drains.
+            # Transport.close() interrupts a blocked write when the service stops.
             self.wfile.write(relay.initial)
             while not relay.closed.is_set():
                 try:
@@ -118,7 +124,7 @@ class Transport:
         self.on_demand = on_demand
         self.position = position
         self.closed = Event()
-        self.client = Lock()
+        self.client = None
         self.resources = Lock()
         self.path = "/" + token_urlsafe(18) + ".ts"
         self.temp = self.child = self.server = self.upstream = None
@@ -221,11 +227,14 @@ class Transport:
             if self.closed.is_set():
                 return
             self.closed.set()
-            if self.upstream:
+            for connection in (self.client, self.upstream):
+                if connection is None:
+                    continue
                 try:
-                    self.upstream.shutdown(socket.SHUT_RDWR)
+                    connection.shutdown(socket.SHUT_RDWR)
                 except OSError:
                     pass
+            if self.upstream:
                 self.upstream.close()
             server, child, temp = self.server, self.child, self.temp
         if server:

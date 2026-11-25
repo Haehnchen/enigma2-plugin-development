@@ -1,5 +1,5 @@
 Package: enigma2-plugin-extensions-joynplayer
-Version: 0.1.0
+Version: 0.1.1
 Architecture: cortexa15hf-neon-vfpv4
 Maintainer: Enigma2 plugin development contributors
 Section: multimedia

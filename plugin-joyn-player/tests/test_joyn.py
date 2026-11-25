@@ -4,6 +4,7 @@ import socket
 import stat
 import sys
 from tempfile import TemporaryDirectory
+from time import sleep
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError
@@ -89,6 +90,8 @@ port = int(sys.argv[sys.argv.index('-p') + 1])
 assert '-f' in sys.argv and sys.argv[sys.argv.index('-s') + 1] == '32'
 with socket.create_connection(('127.0.0.1', port)) as out:
     out.sendall((bytes([0x47]) + bytes(187)) * 3)
+    for i in range(128):
+        out.sendall(bytes([i]) * 65536)
     time.sleep(12)
 """)
             binary.chmod(stat.S_IRWXU)
@@ -107,6 +110,14 @@ with socket.create_connection(('127.0.0.1', port)) as out:
                         self.assertEqual(error.exception.code, 404)
                     with urlopen(url, timeout=2) as response:
                         self.assertEqual(response.read(188 * 3), (bytes([0x47]) + bytes(187)) * 3)
+                        with self.assertRaises(HTTPError) as busy:
+                            urlopen(url, timeout=2)
+                        with busy.exception:
+                            self.assertEqual(busy.exception.code, 409)
+                        # A paused reader used to make sendall time out and truncate the film.
+                        sleep(6)
+                        for i in range(128):
+                            self.assertEqual(response.read(65536), bytes([i]) * 65536)
                 finally:
                     relay.close()
                 relay.close()
